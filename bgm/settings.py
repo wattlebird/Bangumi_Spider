@@ -16,12 +16,9 @@ NEWSPIDER_MODULE = 'bgm.spiders'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'bgm (+http://www.yourdomain.com)'
 ITEM_PIPELINES = {
-    #'bgm.pipelines.UserPipeline': 300,
-    #'bgm.pipelines.RecordPipeline': 400,
-    #'bgm.pipelines.SubjectPipeline': 500
     'bgm.pipelines.TsvPipeline':300
 }
-RETRY_TIMES = 10
+RETRY_TIMES = 0
 
 #DOWNLOADER_MIDDLEWARES = {
 #    'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': None
@@ -30,12 +27,6 @@ RETRY_TIMES = 10
 #REDIRECT_ENABLED = True
 
 #LOG_FILE = 'scrapy.log'
-
-MYSQL_HOST = 'localhost'
-MYSQL_DBNAME = 'bgm'
-MYSQL_USER = 'bgmer'
-MYSQL_PASSWD = 'sai'
-MYSQL_SOCKET = '/var/run/mysqld/mysqld.sock'
 
 DOWNLOAD_DELAY = 0.25
 

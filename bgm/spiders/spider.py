@@ -2,45 +2,12 @@
 
 import scrapy
 import re
-from bgm.items import Record, Index, Friend, User, SubjectInfo, Subject
-from bgm.util import *
+from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.http import Request
 import datetime
+from bgm.items import Record, Index, Friend, Subject
+from bgm.util import *
 
-
-class UserSpider(scrapy.Spider):
-    name = 'user'
-    def __init__(self, *args, **kwargs):
-        super(UserSpider, self).__init__(*args, **kwargs)
-        if not hasattr(self, 'id_max'):
-            self.id_max=400000
-        if not hasattr(self, 'id_min'):
-            self.id_min=1
-        self.start_urls = ["http://chii.in/user/"+str(i) for i in xrange(int(self.id_min),int(self.id_max))]
-
-    def parse(self, response):
-        if len(response.xpath(".//*[@id='headerProfile']"))==0:
-            return
-        user = response.xpath(".//*[@id='headerProfile']/div/div/h1/div[3]/small/text()").extract()[0][1:]
-        nickname = response.xpath(".//*[@class='headerContainer']//*[@class='inner']/a/text()").extract()[0]
-
-        # Is blocked?
-        if len(response.xpath("//ul[@class='timeline']/li"))==0:
-            return;
-
-        if not 'redirect_urls' in response.meta:
-            uid = int(user)
-        else:
-            uid = int(response.meta['redirect_urls'][0].split('/')[-1])
-        date = response.xpath(".//*[@id='user_home']/div[@class='user_box clearit']/ul/li[1]/span[2]/text()").extract()[0].split(' ')[0]
-        date = parsedate(date)
-        last_timestamp = response.xpath(".//*[@id='columnB']/div[1]/div/ul/li[1]/small[2]/text()").extract()[0].split()
-        if last_timestamp[-1]==u'ago':
-            last_active = datetime.date.today()
-        else:
-            last_active = parsedate(last_timestamp[0])
-
-        yield User(name=user, nickname=nickname, uid=uid, joindate=date, activedate=last_active)
 
 class IndexSpider(scrapy.Spider):
     name='index'
@@ -92,6 +59,13 @@ class RecordSpider(scrapy.Spider):
                 self.id_min=1
             self.start_urls = ["http://chii.in/{0}/list/{1}".format(tp, str(i)) for i in xrange(int(self.id_min),int(self.id_max)) for tp in tplst]
 
+    def start_requests(self):
+        for u in self.start_urls:
+            yield scrapy.Request(u, callback=self.parse,
+                                    errback=self.error_handler,
+                                    dont_filter=True)
+            
+
     def parse(self, response):
         username = response.url.split('/')[-1]
         if not 'redirect_urls' in response.meta:
@@ -139,6 +113,17 @@ class RecordSpider(scrapy.Spider):
             request.meta['uid']=uid
             yield request
 
+    def error_handler(self, failure):
+        self.logger.error(repr(failure))
+
+        if failure.check(HttpError): # sometimes Bangumi is unstable, gives 502 error.
+            response = failure.value.response
+            self.logger.error('HttpError on %s', response.url)
+            if response.status==502:
+                self.logger.info("Append %s to the end of scraping list.", response.url)
+                self.start_urls.append(response.url)
+
+
 class FriendsSpider(scrapy.Spider):
     name='friends'
     handle_httpstatus_list = [302]
@@ -156,40 +141,6 @@ class FriendsSpider(scrapy.Spider):
         for itm in lst:
             yield Friend(user = user, friend = str(itm.split('/')[-1]))
 
-class SubjectInfoSpider(scrapy.Spider):
-    name="subjectinfo"
-    def __init__(self, *args, **kwargs):
-        super(SubjectInfoSpider, self).__init__(*args, **kwargs)
-        if not hasattr(self, 'id_max'):
-            self.id_max=200000
-        if not hasattr(self, 'id_min'):
-            self.id_min=1
-        self.start_urls = ["http://chii.in/subject/"+str(i) for i in xrange(int(self.id_min),int(self.id_max))]
-
-    def make_requests_from_url(self, url):
-        rtn = Request(url)
-        rtn.meta['dont_redirect']=True
-        return rtn;
-
-    def parse(self, response):
-        subject_id = int(response.url.split('/')[-1])
-        if not response.xpath(".//*[@id='headerSubject']"):
-            return
-        if response.xpath(".//div[@class='tipIntro']"):
-            return
-        typestring = response.xpath(".//div[@class='global_score']/div/small[1]/text()").extract()[0]
-        typestring = typestring.split(' ')[1];
-
-        infobox = [itm.extract()[:-2] for itm in response.xpath(".//div[@class='infobox']//span/text()")]
-        infobox = set(infobox)
-
-        relations = [itm.extract() for itm in response.xpath(".//ul[@class='browserCoverMedium clearit']/li[@class='sep']/span/text()")]
-        relations = set(relations)
-
-        yield SubjectInfo(subjectid=subject_id,
-                          subjecttype=typestring,
-                          infobox=infobox,
-                          relations=relations)
 
 class SubjectSpider(scrapy.Spider):
     name="subject"
@@ -209,7 +160,22 @@ class SubjectSpider(scrapy.Spider):
             if not hasattr(self, 'id_min'):
                 self.id_min=1
             self.start_urls = ["http://chii.in/subject/"+str(i) for i in xrange(int(self.id_min),int(self.id_max))]
+
+    def start_requests(self):
+        for u in self.start_urls:
+            yield scrapy.Request(u, callback=self.parse,
+                                    errback=self.error_handler,
+                                    dont_filter=True)
     
+    def error_handler(self, failure):
+        self.logger.error(repr(failure))
+
+        if failure.check(HttpError): # sometimes Bangumi is unstable, gives 502 error.
+            response = failure.value.response
+            self.logger.error('HttpError on %s', response.url)
+            if response.status==502:
+                self.logger.info("Append %s to the end of scraping list.", response.url)
+                self.start_urls.append(response.url)
 
     def make_requests_from_url(self, url):
         rtn = Request(url)

@@ -10,15 +10,6 @@ import scrapy
 class DictField(scrapy.item.Field):
     def serializer(self, value):
         return ";".join(":".join([k, v]) for k, v in value.iteritems())
-        
-
-class User(scrapy.Item):
-    name = scrapy.Field()
-    nickname = scrapy.Field()
-    uid = scrapy.Field()
-    joindate = scrapy.Field()
-    activedate = scrapy.Field()
-
 
 class Record(scrapy.Item):
     ## First five items are required.
@@ -44,13 +35,6 @@ class Friend(scrapy.Item):
     user = scrapy.Field()
     friend = scrapy.Field()
     # No date information
-
-class SubjectInfo(scrapy.Item):
-    """This is not the final subject item. It is intended to collect infobox terms and types of relationships"""
-    subjectid = scrapy.Field()
-    subjecttype = scrapy.Field()
-    infobox = scrapy.Field()
-    relations = scrapy.Field()
 
 class Subject(scrapy.Item):
     subjectid = scrapy.Field()
