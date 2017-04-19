@@ -44,6 +44,7 @@ class RecordSpider(scrapy.Spider):
             tplst = [itm.strip().lower() for itm in self.type.split(',')]
         else:
             tplst = ['anime', 'book', 'music', 'game', 'real']
+        self.tplst = tplst
         if hasattr(self, 'userlist'):
             userlist = []
             with open(self.userlist, 'r') as fr:
@@ -51,37 +52,72 @@ class RecordSpider(scrapy.Spider):
                     l = fr.readline().strip()
                     if not l: break;
                     userlist.append(l)
-            self.start_urls = ["http://chii.in/{0}/list/{1}".format(tp, i) for i in userlist for tp in tplst]
+            self.start_urls = ["http://chii.in/user/{0}".format(i) for i in userlist]
         else:
             if not hasattr(self, 'id_max'):
                 self.id_max=400000
             if not hasattr(self, 'id_min'):
                 self.id_min=1
-            self.start_urls = ["http://chii.in/{0}/list/{1}".format(tp, str(i)) for i in xrange(int(self.id_min),int(self.id_max)) for tp in tplst]
+            self.start_urls = ["http://chii.in/user/{0}".format(i) for i in xrange(int(self.id_min),int(self.id_max))]
 
     def start_requests(self):
         for u in self.start_urls:
             yield scrapy.Request(u, callback=self.parse,
                                     errback=self.error_handler,
                                     dont_filter=True)
-            
 
     def parse(self, response):
         username = response.url.split('/')[-1]
+        try:
+            nickname = response.xpath(".//h1[@class='nameSingle']/div[@class='inner']/a/text()").extract()[0].strip()
+        except IndexError:
+            nickname = u""
         if not 'redirect_urls' in response.meta:
             uid = int(username)
         else:
             uid = int(response.meta['redirect_urls'][0].split('/')[-1])
 
+        if 'anime' in self.tplst and len(response.xpath(".//*[@id='anime']"))!=0:
+            req = scrapy.Request("http://chii.in/anime/list/"+username, callback = self.merge)
+            req.meta['uid']=uid
+            req.meta['username']=username
+            req.meta['nickname']=nickname
+            yield req
+        if 'game' in self.tplst and len(response.xpath(".//*[@id='game']"))!=0:
+            req = scrapy.Request("http://chii.in/game/list/"+username, callback = self.merge)
+            req.meta['uid']=uid
+            req.meta['username']=username
+            req.meta['nickname']=nickname
+            yield req
+        if 'book' in self.tplst and len(response.xpath(".//*[@id='book']"))!=0:
+            req = scrapy.Request("http://chii.in/book/list/"+username, callback = self.merge)
+            req.meta['uid']=uid
+            req.meta['username']=username
+            req.meta['nickname']=nickname
+            yield req
+        if 'music' in self.tplst and len(response.xpath(".//*[@id='music']"))!=0:
+            req = scrapy.Request("http://chii.in/music/list/"+username, callback = self.merge)
+            req.meta['uid']=uid
+            req.meta['username']=username
+            req.meta['nickname']=nickname
+            yield req
+        if 'real' in self.tplst and len(response.xpath(".//*[@id='real']"))!=0:
+            req = scrapy.Request("http://chii.in/real/list/"+username, callback = self.merge)
+            req.meta['uid']=uid
+            req.meta['username']=username
+            req.meta['nickname']=nickname
+            yield req
+
+    def merge(self, response):
         followlinks = response.xpath(".//div[@id='columnA']/div/div[1]/ul/li[2]//@href").extract() # a list of links
         for link in followlinks:
             req = scrapy.Request(u"http://chii.in"+link, callback = self.parse_recorder)
-            req.meta['uid']=uid
+            req.meta['uid']=response.meta['uid']
+            req.meta['username']=response.meta['username']
+            req.meta['nickname']=response.meta['nickname']
             yield req
 
     def parse_recorder(self, response):
-        name = response.url.split('/')[-2]
-        uid = response.meta['uid']
         state = response.url.split('/')[-1].split('?')[0]
         tp = response.url.split('/')[-4]
 
@@ -101,7 +137,8 @@ class RecordSpider(scrapy.Spider):
             else:
                 item_rate = None
 
-            watchRecord = Record(name = name, uid = uid, typ = tp, state = state, iid = item_id, adddate = item_date)
+            watchRecord = Record(nickname = response.meta['nickname'], name = response.meta['username'], uid = response.meta['uid'],
+                typ = tp, state = state, iid = item_id, adddate = item_date)
             if item_tags:
                 watchRecord["tags"]=item_tags
             if item_rate:
@@ -110,7 +147,9 @@ class RecordSpider(scrapy.Spider):
 
         if len(items)==24:
             request = scrapy.Request(getnextpage(response.url),callback = self.parse_recorder)
-            request.meta['uid']=uid
+            request.meta['uid']=response.meta['uid']
+            request.meta['username']=response.meta['username']
+            request.meta['nickname']=response.meta['nickname']
             yield request
 
     def error_handler(self, failure):
@@ -119,7 +158,7 @@ class RecordSpider(scrapy.Spider):
         if failure.check(HttpError): # sometimes Bangumi is unstable, gives 502 error.
             response = failure.value.response
             self.logger.error('HttpError on %s', response.url)
-            if response.status==502:
+            if response.status==503:
                 self.logger.info("Append %s to the end of scraping list.", response.url)
                 self.start_urls.append(response.url)
 
@@ -173,7 +212,7 @@ class SubjectSpider(scrapy.Spider):
         if failure.check(HttpError): # sometimes Bangumi is unstable, gives 502 error.
             response = failure.value.response
             self.logger.error('HttpError on %s', response.url)
-            if response.status==502:
+            if response.status==503:
                 self.logger.info("Append %s to the end of scraping list.", response.url)
                 self.start_urls.append(response.url)
 
@@ -229,7 +268,7 @@ class SubjectSpider(scrapy.Spider):
         infobox = dict()
         for key,val in zip(infokey, infoval):
             if val.xpath("a"):
-                infobox[key]=[int(ref.split('/')[-1]) for ref in
+                infobox[key]=[ref.split('/')[-1] for ref in
                       val.xpath("a/@href").extract()]
 
         date = None
@@ -249,20 +288,16 @@ class SubjectSpider(scrapy.Spider):
         for itm in relateditms:
             if itm.xpath("@class"):
                 relationtype = itm.xpath("span/text()").extract()[0]
-                relations[relationtype]=[int(itm.xpath("a[@class='title']/@href").
-                                extract()[0].split('/')[-1])]
+                relations[relationtype]=[itm.xpath("a[@class='title']/@href").
+                                extract()[0].split('/')[-1]]
             else:
-                relations[relationtype].append(int(itm.xpath("a[@class='title']/@href").
-                                      extract()[0].split('/')[-1]))
+                relations[relationtype].append(itm.xpath("a[@class='title']/@href").
+                                      extract()[0].split('/')[-1])
         brouche = response.xpath(".//ul[@class='browserCoverSmall clearit']/li")
         if brouche:
-            relations[u'单行本']=[int(itm.split('/')[-1]) for itm in
+            relations[u'单行本']=[itm.split('/')[-1] for itm in
                            brouche.xpath("a/@href").extract()]
 
-        tagbox = response.xpath(".//div[@class='subject_tag_section']/div")
-        tagname = tagbox.xpath("a/text()").extract()
-        tagval = [int(itm) for itm in tagbox.xpath("small").re("\d+")]
-        tags = dict(zip(tagname,tagval))
 
         yield Subject(subjectid=subjectid,
                       subjecttype=subjecttype,
@@ -272,6 +307,5 @@ class SubjectSpider(scrapy.Spider):
                       votenum=votenum,
                       favnum=';'.join([str(itm) for itm in favcount]),
                       date=date,
-                      #staff=infobox,
-                      relations=relations,
-                      tags=tags)
+                      staff=infobox,
+                      relations=relations)

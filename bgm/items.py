@@ -13,8 +13,9 @@ class DictField(scrapy.item.Field):
 
 class Record(scrapy.Item):
     ## First five items are required.
-    name = scrapy.Field()
     uid = scrapy.Field()
+    name = scrapy.Field()
+    nickname = scrapy.Field()
     typ = scrapy.Field()
     iid = scrapy.Field() #name and id together forms primary key.
     state = scrapy.Field()
@@ -47,8 +48,7 @@ class Subject(scrapy.Item):
     favnum = scrapy.Field()
     date = scrapy.Field()
 
-    #staff = scrapy.Field() # feature list!
+    staff = scrapy.Field() #map
+    staff['serializer'] = lambda x: u";".join(u":".join([k, u",".join(v)]) for k, v in x.iteritems())
     relations = scrapy.Field() #map
-    relations['serializer'] = lambda x: u";".join(u":".join([k, v]) for k, v in x.iteritems())
-    tags = scrapy.Field() #map
-    tags['serializer'] = lambda x: u";".join(u":".join([k, unicode(v)]) for k, v in x.iteritems())
+    relations['serializer'] = lambda x: u";".join(u":".join([k, u",".join(v)]) for k, v in x.iteritems())
