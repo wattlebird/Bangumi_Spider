@@ -60,12 +60,6 @@ class RecordSpider(scrapy.Spider):
                 self.id_min=1
             self.start_urls = ["http://chii.in/user/{0}".format(i) for i in xrange(int(self.id_min),int(self.id_max))]
 
-    def start_requests(self):
-        for u in self.start_urls:
-            yield scrapy.Request(u, callback=self.parse,
-                                    errback=self.error_handler,
-                                    dont_filter=True)
-
     def parse(self, response):
         username = response.url.split('/')[-1]
         try:
@@ -152,16 +146,6 @@ class RecordSpider(scrapy.Spider):
             request.meta['nickname']=response.meta['nickname']
             yield request
 
-    def error_handler(self, failure):
-        self.logger.error(repr(failure))
-
-        if failure.check(HttpError): # sometimes Bangumi is unstable, gives 502 error.
-            response = failure.value.response
-            self.logger.error('HttpError on %s', response.url)
-            if response.status==503:
-                self.logger.info("Append %s to the end of scraping list.", response.url)
-                self.start_urls.append(response.url)
-
 
 class FriendsSpider(scrapy.Spider):
     name='friends'
@@ -199,22 +183,6 @@ class SubjectSpider(scrapy.Spider):
             if not hasattr(self, 'id_min'):
                 self.id_min=1
             self.start_urls = ["http://chii.in/subject/"+str(i) for i in xrange(int(self.id_min),int(self.id_max))]
-
-    def start_requests(self):
-        for u in self.start_urls:
-            yield scrapy.Request(u, callback=self.parse,
-                                    errback=self.error_handler,
-                                    dont_filter=True)
-    
-    def error_handler(self, failure):
-        self.logger.error(repr(failure))
-
-        if failure.check(HttpError): # sometimes Bangumi is unstable, gives 502 error.
-            response = failure.value.response
-            self.logger.error('HttpError on %s', response.url)
-            if response.status==503:
-                self.logger.info("Append %s to the end of scraping list.", response.url)
-                self.start_urls.append(response.url)
 
     def make_requests_from_url(self, url):
         rtn = Request(url)
