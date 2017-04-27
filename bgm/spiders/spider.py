@@ -211,6 +211,7 @@ class SubjectSpider(scrapy.Spider):
         subjectname = response.xpath(".//*[@id='headerSubject']/h1/a/attribute::title").extract()[0]
         if not subjectname:
             subjectname = response.xpath(".//*[@id='headerSubject']/h1/a/text()").extract()[0]
+        subjectname = subjectname.replace(u'\n', u' ')
 
         rank = response.xpath(".//div[@class='global_score']/div/small[2]/text()").extract()[0]
         if rank==u'--':
