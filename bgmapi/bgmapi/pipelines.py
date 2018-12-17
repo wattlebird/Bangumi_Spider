@@ -25,7 +25,7 @@ class TsvPipeline(object):
         return pipeline
 
     def spider_opened(self, spider):
-        file = open(spider.name+'-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv*', 
+        file = open(spider.name+'-api-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv*', 
                            'wb')
         self.files[spider] = file
 

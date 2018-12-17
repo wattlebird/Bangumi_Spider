@@ -29,7 +29,7 @@ class SubjectSpider(scrapy.Spider):
         if 'error' in data:
             return
         typ = subjectTypeLut[data['type']]
-        name = data['name_cn']
+        name = data['name_cn'] or data['name']
         rank = data.get('rank', '')
         votenum = data['rating']['total'] if 'rating' in data else 0
         if 'collection' not in data:

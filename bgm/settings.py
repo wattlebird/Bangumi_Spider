@@ -22,6 +22,7 @@ ITEM_PIPELINES = {
     'bgm.pipelines.TsvPipeline':300
 }
 RETRY_TIMES = 10
+AUTOTHROTTLE_ENABLED = True
 LOG_LEVEL='INFO'
 DUPEFILTER_CLASS='scrapy.dupefilters.BaseDupeFilter'
 
