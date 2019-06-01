@@ -29,7 +29,8 @@ class SubjectSpider(scrapy.Spider):
         if 'error' in data:
             return
         typ = subjectTypeLut[data['type']]
-        name = data['name_cn'] or data['name']
+        name = data['name']
+        name_cn = data['name_cn']
         rank = data.get('rank', '')
         votenum = data['rating']['total'] if 'rating' in data else 0
         if 'collection' not in data:
@@ -54,6 +55,7 @@ class SubjectSpider(scrapy.Spider):
         yield Subject(subjectid=id,
                       subjecttype=typ,
                       subjectname=name.translate(mpa),
+                      subjectname_cn=name_cn.translate(mpa),
                       order=order,
                       rank=rank,
                       votenum=votenum,
