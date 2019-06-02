@@ -11,7 +11,6 @@ import json
 mpa = dict([(i, None) for i in range(32)])
 
 class UserSpider(scrapy.Spider):
-    # User spider may be deprecated, since api.bgm.tv contains more information
     name = 'user'
     def __init__(self, *args, **kwargs):
         super(UserSpider, self).__init__(*args, **kwargs)
@@ -96,6 +95,17 @@ class RecordSpider(scrapy.Spider):
         if (not response.xpath(".//*[@id='headerProfile']")) or response.xpath(".//div[@class='tipIntro']"):
             return
         uid = int(response.meta['redirect_urls'][0].split('/')[-1]) if 'redirect_urls' in response.meta else int(username)
+        nickname = response.xpath(".//*[@class='headerContainer']//*[@class='inner']/a/text()").extract()[0].translate(mpa)
+
+        date = response.xpath(".//*[@id='user_home']/div[@class='user_box clearit']/ul/li[1]/span[2]/text()").extract()[0].split(' ')[0]
+        date = parsedate(date)
+        last_timestamp = response.xpath(".//*[@id='columnB']/div[1]/div/ul/li[1]/small[2]/text()").extract()[0].split()
+        if last_timestamp[-1]==u'ago':
+            last_active = datetime.date.today()
+        else:
+            last_active = parsedate(last_timestamp[0])
+
+        yield User(name=username, nickname=nickname, uid=uid, joindate=date, activedate=last_active)
 
         if len(response.xpath(".//*[@id='anime']")):
             yield scrapy.Request("http://mirror.bgm.rin.cat/anime/list/"+username, callback = self.merge, meta = { 'uid': uid })
@@ -118,8 +128,6 @@ class RecordSpider(scrapy.Spider):
             yield scrapy.Request(u"http://mirror.bgm.rin.cat"+link, callback = self.parse_recorder, meta = { 'uid': response.meta['uid'] })
 
     def parse_recorder(self, response):
-        username = response.url.split('/')[-2]
-        nickname = response.xpath(".//div[@id='headerProfile']//h1/div[3]/a/text()").extract()[0].translate(mpa)
         state = response.url.split('/')[-1].split('?')[0]
         tp = response.url.split('/')[-4]
 
@@ -141,8 +149,12 @@ class RecordSpider(scrapy.Spider):
 
             comment = item.xpath(".//div[@class='text']/text()").extract()[0] if len(item.xpath(".//div[@class='text']")) > 0 else None
 
-            watchRecord = Record(nickname = nickname, name = username, uid = response.meta['uid'],
-              typ = tp, state = state, iid = item_id, adddate = item_date)
+            watchRecord = Record(
+                uid = response.meta['uid'],
+                typ = tp, state = state,
+                iid = item_id,
+                adddate = item_date
+                )
             if item_tags:
                 watchRecord["tags"]=item_tags
             if item_rate:
@@ -202,7 +214,7 @@ class SubjectInfoSpider(scrapy.Spider):
                           relations=relations)
 
 class SubjectSpider(scrapy.Spider):
-    name="subject"
+    name="subject-ext"
     def __init__(self, *args, **kwargs):
         super(SubjectSpider, self).__init__(*args, **kwargs)
         if hasattr(self, 'itemlist'):
@@ -236,51 +248,16 @@ class SubjectSpider(scrapy.Spider):
         else:
             order = subjectid; # id
 
-        subjecttype = response.xpath(".//div[@class='global_score']/div/small[1]/text()").extract()[0]
-        subjecttype = subjecttype.split(' ')[1].lower();
-
-        subjectname = response.xpath(".//*[@id='headerSubject']/h1/a/attribute::title").extract()[0]
-        if not subjectname:
-            subjectname = response.xpath(".//*[@id='headerSubject']/h1/a/text()").extract()[0]
-
-        rank = response.xpath(".//div[@class='global_score']/div/small[2]/text()").extract()[0]
-        if rank==u'--':
-            rank=None
-        else:
-            rank = int(rank[1:])
-        votenum = int(response.xpath(".//*[@id='ChartWarpper']/div/small/span/text()").extract()[0])
-
-        tplst = [itm.split('/')[-1] for itm in response.xpath(".//*[@id='columnSubjectHomeA']/div[3]/span/a/@href").extract()]
-        favcount = [0]*5; j=1;
-        for i in range(5):
-            if not tplst or tplst[0]!=statestr[i]:
-                favcount[i]=0;
-            else:
-                tmpstr = response.xpath(".//*[@id='columnSubjectHomeA']/div[3]/span/a["+str(j)+"]/text()").extract()[0]
-                mtch = re.match(r"^(\d+)", tmpstr);
-                favcount[i] = int(mtch.group());
-                j+=1
-                tplst = tplst[1:]
-
         infokey = [itm[:-2] for itm in response.xpath(".//div[@class='infobox']//li/span/text()").extract()]
         infoval = response.xpath(".//div[@class='infobox']//li")
         infobox = dict()
+        alias = []
         for key,val in zip(infokey, infoval):
             if val.xpath("a"):
                 infobox[key]=[ref.split('/')[-1] for ref in
                     val.xpath("a/@href").extract()]
-
-        date = None
-        for datekey in datestr:
-            if datekey in infokey:
-                idx = infokey.index(datekey)
-                try:
-                    date = parsedate(infoval[idx].xpath('text()').extract()[0]) #may be none
-                except:
-                    date = None;
-            if date is None:
-                continue;
-            else: break;
+            if key == '别名':
+                alias.append(val.xpath('text()').extract()[0])
 
         relateditms = response.xpath(".//ul[@class='browserCoverMedium clearit']/li")
         relations = dict()
@@ -298,12 +275,7 @@ class SubjectSpider(scrapy.Spider):
                            brouche.xpath("a/@href").extract()]
 
         yield Subject(subjectid=subjectid,
-                      subjecttype=subjecttype,
-                      subjectname=subjectname.translate(mpa),
                       order=order,
-                      rank=rank,
-                      votenum=votenum,
-                      favnum=';'.join([str(itm) for itm in favcount]),
-                      date=date,
+                      alias=alias,
                       staff=infobox,
                       relations=relations)

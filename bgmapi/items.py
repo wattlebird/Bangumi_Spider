@@ -7,7 +7,11 @@
 
 import scrapy
 
-
+class User(scrapy.Item):
+    name = scrapy.Field()
+    nickname = scrapy.Field()
+    uid = scrapy.Field()
+    group = scrapy.Field()
 
 class Subject(scrapy.Item):
     subjectid = scrapy.Field()
