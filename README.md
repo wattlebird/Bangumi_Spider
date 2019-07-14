@@ -32,6 +32,25 @@ SCRAPY_PROJECT=bgmapi scrapy crawl subject-api -a id_max=100
 
 Then you can check the scraped items under main folder.
 
+# How to deploy?
+
+One can deploy the spider by `scrapyd-client`, which provides `scrapyd-deploy` to help you deploy to scrapyd server.
+
+```
+scrapyd-deploy bgm -p bgm
+scrapyd-deploy bgmapi -p bgmapi
+```
+
+To setup a scrapyd server, one can certainly do that manually. However, we are providing a docker image to help you achieve that goal more quickly.
+
+```
+docker run -d -p 6800:6800 wattlebird/scrapyd:latest
+```
+
+Then you can visit http://localhost:6800 to watch your jobs.
+
+The source code of that docker image is under the folder scrapyd.
+
 ## Known issues
 
 Due to sensitive content restriction, spider `subject` cannot scrape subjects that are marked as R-18.
