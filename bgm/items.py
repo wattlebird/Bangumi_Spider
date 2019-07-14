@@ -54,6 +54,8 @@ class SubjectInfo(scrapy.Item):
 
 class Subject(scrapy.Item):
     subjectid = scrapy.Field()
+    subjecttype = scrapy.Field()
+    subjectname = scrapy.Field()
     order = scrapy.Field()
     alias = scrapy.Field()
     alias['serializer'] = lambda x: ";".join(x)

@@ -34,12 +34,6 @@ DUPEFILTER_CLASS='scrapy.dupefilters.BaseDupeFilter'
 
 #LOG_FILE = 'scrapy.log'
 
-MYSQL_HOST = 'localhost'
-MYSQL_DBNAME = 'bgm'
-MYSQL_USER = 'bgmer'
-MYSQL_PASSWD = 'sai'
-MYSQL_SOCKET = '/var/run/mysqld/mysqld.sock'
-
 ########################################
 # The following settings are only applicable to Ronnie Wang's spider setting
 # Because Ronnie only uses Azure for storage.

@@ -5,7 +5,7 @@ from bgmapi.items import User
 
 
 class UserSpider(scrapy.Spider):
-    name = 'user'
+    name = 'user-api'
     allowed_domains = ['http://mirror.api.bgm.rin.cat/user']
 
     def __init__(self, id_min=1, id_max=300000, *args, **kwargs):

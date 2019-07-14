@@ -14,7 +14,7 @@ subjectTypeLut = {
 mpa = dict([(i, None) for i in range(32)])
 
 class SubjectSpider(scrapy.Spider):
-    name = 'subject'
+    name = 'subject-api'
     allowed_domains = ['mirror.api.bgm.rin.cat']
 
     def __init__(self, id_min=1, id_max=300000, *args, **kwargs):

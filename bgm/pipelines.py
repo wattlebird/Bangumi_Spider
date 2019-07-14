@@ -41,8 +41,8 @@ class TsvPipeline(object):
             self.exporter.fields_to_export = ['uid', 'iid', 'typ', 'state', 'adddate', 'rate', 'tags', 'comment']
         elif spider.name=='user':
             self.exporter.fields_to_export = ['uid', 'name', 'nickname', 'joindate', 'activedate']
-        elif spider.name=='subject-ext':
-            self.exporter.fields_to_export = ['subjectid', 'order', 'alias', 'staff', 'relations']
+        elif spider.name=='subject':
+            self.exporter.fields_to_export = ['subjectid', 'subjecttype', 'subjectname', 'order', 'alias', 'staff', 'relations']
         elif spider.name=='index':
             self.exporter.fields_to_export = ['indexid', 'creator', 'favourite', 'date', 'items']
         elif spider.name=='friends':

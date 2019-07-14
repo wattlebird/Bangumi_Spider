@@ -25,17 +25,16 @@ class TsvPipeline(object):
         return pipeline
 
     def spider_opened(self, spider):
-        file = open(spider.name+'-api-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv*', 
+        file = open(spider.name+'-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv*', 
                            'wb')
         self.files[spider] = file
 
         self.exporter = CsvItemExporter(file, include_headers_line=True, join_multivalued=';', encoding="utf-8", delimiter='\t')
-        if spider.name=='user':
+        if spider.name=='user-api':
             self.exporter.fields_to_export = ['uid', 'name', 'nickname', 'group']
-        elif spider.name=='subject':
+        elif spider.name=='subject-api':
             self.exporter.fields_to_export = ['subjectid', 'order', 'subjectname', 'subjectname_cn', 'subjecttype', 'rank', 'date', 'votenum', 'favnum', 'staff']
-        elif spider.name=='record':
-            self.exporter.fields_to_export = ['uid', 'name', 'nickname', 'iid', 'typ', 'state', 'adddate', 'rate', 'tags', 'comment']
+        
         self.exporter.start_exporting()
 
     def spider_closed(self, spider):

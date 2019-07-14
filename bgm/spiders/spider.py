@@ -214,7 +214,7 @@ class SubjectInfoSpider(scrapy.Spider):
                           relations=relations)
 
 class SubjectSpider(scrapy.Spider):
-    name="subject-ext"
+    name="subject"
     def __init__(self, *args, **kwargs):
         super(SubjectSpider, self).__init__(*args, **kwargs)
         if hasattr(self, 'itemlist'):
@@ -248,6 +248,13 @@ class SubjectSpider(scrapy.Spider):
         else:
             order = subjectid; # id
 
+        subjectname = response.xpath(".//*[@id='headerSubject']/h1/a/attribute::title").extract()[0]
+        if not subjectname:
+            subjectname = response.xpath(".//*[@id='headerSubject']/h1/a/text()").extract()[0]
+
+        subjecttype = response.xpath(".//div[@class='global_score']/div/small[1]/text()").extract()[0]
+        subjecttype = subjecttype.split(' ')[1].lower();
+
         infokey = [itm[:-2] for itm in response.xpath(".//div[@class='infobox']//li/span/text()").extract()]
         infoval = response.xpath(".//div[@class='infobox']//li")
         infobox = dict()
@@ -275,6 +282,8 @@ class SubjectSpider(scrapy.Spider):
                            brouche.xpath("a/@href").extract()]
 
         yield Subject(subjectid=subjectid,
+                      subjecttype=subjecttype,
+                      subjectname=subjectname,
                       order=order,
                       alias=alias,
                       staff=infobox,

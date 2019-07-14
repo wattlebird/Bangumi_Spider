@@ -1,50 +1,40 @@
 # Bangumi Spider
 
-This is a [scrapy](http://scrapy.org/) based spider used to scrape data from [Bangumi 番组计划](https://bgm.tv). It is especially designed for machine learning task carried out by [Chi](http://ikely.me/chi)
+This is a [scrapy](http://scrapy.org/) based spider used to scrape data from [Bangumi 番组计划](https://bgm.tv).
 
 ## What information it can scrape?
 
-Currently, bangumi spider can scrape user information, users' item record (their favorited items, rates and so on), friendship and user composed indexes. Each of the task has its dedicated spider.
+| Spider name | Purpose | Items |
+|---|---|---|
+| user | User information retrived via web. | uid, name, nickname, joindate, _activedate_(last active date via timeline) |
+| record | User-subject information retrived via web. | _uid_(user id), _iid_(item id), _typ_(item type), _state_(user's favorite state), adddate, rate, tags, comment |
+| subject | Subject information retrived via web. | subjectid, subjecttype, subjectname, _order_(same as subjectid except for redirected subjects, for which original id is kept as _order_), _alias_(alias of _subjectname_), staff, _relations_(subject's relation with other subjects) |
+| user-api | User information retrived via API. | uid, name, nickname, group |
+| subject-api | Subject information retrived via API. | subjectid, order, subjectname, subjectname_cn, subjecttype, rank, date, votenum, favnum, staff |
 
-## How to set up the spider?
+## How to use the spider?
 
-### Bangumi spider defaults generates scraped data in the form of TSV.
+Prerequisit of this spider is `scrapy`, so one need to install `scrapy` first.
 
-Currently, we added the support to scrape the data in the format of TSV. No prerequisites are required to store in TSV.
+To use web spiders locally, one should git clone this repository first then run
 
-Besides, we have added the functionality to upload data to Azure Blob storage after the scrape of data. You just have provide you Azure account name, container name and access key. One must set up his/her own container (by Azure protal or other methods) in `bgm/settings.py` before open up this functionality.
-
-Then you deploy your spider to your server. Don't forget to open 6800 port for [scrapyd](http://scrapyd.readthedocs.org/en/latest/), the scrapy on the production environment.
-
-Then follow the following steps:
-
-1. Go to [Miniconda](http://conda.pydata.org/miniconda.html) to download the latest Miniconda to your VPS.  
-2. Create an environment for scrapy. In this case, we name it "scrapyenv":
 ```
-conda create -n scrapyenv python
-source activate scrapyenv
-```  
-3. Install the prerequisites for scrapyd:
+scrapy crawl subject -a id_max=100
 ```
-conda install lxml
-pip install scrapyd
-pip install mysql-python
-pip install service_identity
-pip install azure # if you enabled azure storage
-```  
-4. Run scrapyd:
+
+`id_max` is a parameter specifying the maximun subject id it should be scraped. Meanwhile there is another parameter naming `id_min`.
+
+For spiders scraping from APIs, one need to add environmental variable `SCRAPY_PROJECT=bgmapi` before running. For example, on Linux it should be 
+
 ```
-sudo touch /var/log/scrapyd.log
-sudo chown ec2-user:ec2-user /var/log/scrapyd.log
-scrapyd --logfile=/var/log/scrapyd.log &
-```  
-At this time, you can check http://votre.site:6800/ to see if scrapyd presents you a web interface.  
-5. Then on your local machine, you have to package your project to upload it to your scrapyd server. You have to `pip install scrapyd-client` to help you package and upload. For this part, you can refer to [here](https://github.com/scrapy/scrapyd-client).  
-6. Execute `curl http://votre.site:6800/schedule.json -d project=bgm -d spider=the-spider-you-want`  
+SCRAPY_PROJECT=bgmapi scrapy crawl subject-api -a id_max=100
+```
 
-## Known issue
+Then you can check the scraped items under main folder.
 
-Due to sensitive content restriction, this spider cannot scrape subjects that are marked as R-18.
+## Known issues
+
+Due to sensitive content restriction, spider `subject` cannot scrape subjects that are marked as R-18.
 
 ## License
 
