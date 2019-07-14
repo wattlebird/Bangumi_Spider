@@ -1,0 +1,17 @@
+services:
+  - docker
+
+script:
+  - cd scrapyd
+  - docker build -t scrapyd .
+
+deploy:
+  provider: script
+  on:
+    tags: true
+  script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker tag scrapyd wattlebird/scrapyd:$TRAVIS_TAG
+    - docker tag scrapyd wattlebird/scrapyd:latest
+    - docker push wattlebird/scrapyd:$TRAVIS_TAG
+    - docker push wattlebird/scrapyd:latest

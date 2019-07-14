@@ -1,0 +1,16 @@
+requests
+selenium
+aiohttp
+beautifulsoup4
+pyquery
+pymysql
+redis
+pymongo
+flask
+django
+scrapy
+scrapyd
+scrapyd-client
+scrapy-redis
+scrapy-splash
+azure
