@@ -17,7 +17,6 @@ class User(scrapy.Item):
     nickname = scrapy.Field()
     uid = scrapy.Field()
     joindate = scrapy.Field()
-    activedate = scrapy.Field()
 
 
 class Record(scrapy.Item):

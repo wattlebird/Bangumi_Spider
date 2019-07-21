@@ -37,10 +37,10 @@ class TsvPipeline(object):
             userfile = open('user-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv*', 'wb')
             self.files[spider].append(userfile)
             self.userexporter = CsvItemExporter(userfile, include_headers_line=True, join_multivalued=';', encoding="utf-8", delimiter='\t')
-            self.userexporter.fields_to_export = ['uid', 'name', 'nickname', 'joindate', 'activedate']
+            self.userexporter.fields_to_export = ['uid', 'name', 'nickname', 'joindate']
             self.exporter.fields_to_export = ['uid', 'iid', 'typ', 'state', 'adddate', 'rate', 'tags', 'comment']
         elif spider.name=='user':
-            self.exporter.fields_to_export = ['uid', 'name', 'nickname', 'joindate', 'activedate']
+            self.exporter.fields_to_export = ['uid', 'name', 'nickname', 'joindate']
         elif spider.name=='subject':
             self.exporter.fields_to_export = ['subjectid', 'subjecttype', 'subjectname', 'order', 'alias', 'staff', 'relations']
         elif spider.name=='index':

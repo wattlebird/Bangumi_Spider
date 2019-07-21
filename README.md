@@ -6,11 +6,13 @@ This is a [scrapy](http://scrapy.org/) based spider used to scrape data from [Ba
 
 | Spider name | Purpose | Items |
 |---|---|---|
-| user | User information retrived via web. | uid, name, nickname, joindate, _activedate_(last active date via timeline) |
-| record | User-subject information retrived via web. | _uid_(user id), _iid_(item id), _typ_(item type), _state_(user's favorite state), adddate, rate, tags, comment |
+| user | User information retrived via web. | uid, name, nickname, joindate |
+| record* | User-subject information retrived via web. | _uid_(user id), _iid_(item id), _typ_(item type), _state_(user's favorite state), adddate, rate, tags, comment |
 | subject | Subject information retrived via web. | subjectid, subjecttype, subjectname, _order_(same as subjectid except for redirected subjects, for which original id is kept as _order_), _alias_(alias of _subjectname_), staff, _relations_(subject's relation with other subjects) |
 | user-api | User information retrived via API. | uid, name, nickname, group |
 | subject-api | Subject information retrived via API. | subjectid, order, subjectname, subjectname_cn, subjecttype, rank, date, votenum, favnum, staff |
+
+_* record spider: it would scrape user simultaneously._
 
 ## How to use the spider?
 
@@ -32,19 +34,24 @@ SCRAPY_PROJECT=bgmapi scrapy crawl subject-api -a id_max=100
 
 Then you can check the scraped items under main folder.
 
-# How to deploy?
+## How to deploy?
 
-One can deploy the spider by `scrapyd-client`, which provides `scrapyd-deploy` to help you deploy to scrapyd server.
+One can deploy the spider by `scrapyd-client`, which provides `scrapyd-deploy` to help you deploy to scrapyd server. However, the actual deploying process is a little bit more complicated than what is introduced in the documentation on `scrapyd-client`. As far as I know, it does not support deploying multiple projects, which is quite bizzare.
+
+To deploy bgm and bgmapi properly, one have to execute the following commands:
 
 ```
-scrapyd-deploy bgm -p bgm
-scrapyd-deploy bgmapi -p bgmapi
+python setup_bgm.py bdist_egg
+scrapyd-deploy bgm --egg dist/project-1.0-py3.7.egg # The actual egg file generated may have a different name
+python setup_bgmapi.py bdist_egg
+scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg # The actual egg file generated may have a different name
 ```
 
 To setup a scrapyd server, one can certainly do that manually. However, we are providing a docker image to help you achieve that goal more quickly.
 
 ```
 docker run -d -p 6800:6800 wattlebird/scrapyd:latest
+curl http://localhost:6800/schedule.json -d project=bgm -d spider=record -d id_max=100
 ```
 
 Then you can visit http://localhost:6800 to watch your jobs.

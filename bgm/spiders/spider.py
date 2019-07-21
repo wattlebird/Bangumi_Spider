@@ -36,13 +36,8 @@ class UserSpider(scrapy.Spider):
             uid = int(response.meta['redirect_urls'][0].split('/')[-1])
         date = response.xpath(".//*[@id='user_home']/div[@class='user_box clearit']/ul/li[1]/span[2]/text()").extract()[0].split(' ')[0]
         date = parsedate(date)
-        last_timestamp = response.xpath(".//*[@id='columnB']/div[1]/div/ul/li[1]/small[2]/text()").extract()[0].split()
-        if last_timestamp[-1]==u'ago':
-            last_active = datetime.date.today()
-        else:
-            last_active = parsedate(last_timestamp[0])
 
-        yield User(name=user, nickname=nickname, uid=uid, joindate=date, activedate=last_active)
+        yield User(name=user, nickname=nickname, uid=uid, joindate=date)
 
 class IndexSpider(scrapy.Spider):
     name='index'
@@ -99,13 +94,8 @@ class RecordSpider(scrapy.Spider):
 
         date = response.xpath(".//*[@id='user_home']/div[@class='user_box clearit']/ul/li[1]/span[2]/text()").extract()[0].split(' ')[0]
         date = parsedate(date)
-        last_timestamp = response.xpath(".//*[@id='columnB']/div[1]/div/ul/li[1]/small[2]/text()").extract()[0].split()
-        if last_timestamp[-1]==u'ago':
-            last_active = datetime.date.today()
-        else:
-            last_active = parsedate(last_timestamp[0])
 
-        yield User(name=username, nickname=nickname, uid=uid, joindate=date, activedate=last_active)
+        yield User(name=username, nickname=nickname, uid=uid, joindate=date)
 
         if len(response.xpath(".//*[@id='anime']")):
             yield scrapy.Request("http://mirror.bgm.rin.cat/anime/list/"+username, callback = self.merge, meta = { 'uid': uid })
