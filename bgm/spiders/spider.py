@@ -90,7 +90,7 @@ class RecordSpider(scrapy.Spider):
         if (not response.xpath(".//*[@id='headerProfile']")) or response.xpath(".//div[@class='tipIntro']"):
             return
         uid = int(response.meta['redirect_urls'][0].split('/')[-1]) if 'redirect_urls' in response.meta else int(username)
-        nickname = response.xpath(".//*[@class='headerContainer']//*[@class='inner']/a/text()").extract()[0].translate(mpa)
+        nickname = next(iter(response.xpath(".//*[@class='headerContainer']//*[@class='inner']/a/text()").extract()), "").translate(mpa)
 
         date = response.xpath(".//*[@id='user_home']/div[@class='user_box clearit']/ul/li[1]/span[2]/text()").extract()[0].split(' ')[0]
         date = parsedate(date)
@@ -130,9 +130,10 @@ class RecordSpider(scrapy.Spider):
             else:
                 item_tags=None
 
-            try_match = re.match(r'sstars(\d+) starsinfo', item.xpath("./div/p[@class='collectInfo']/span[1]/@class").extract()[0])
-            if try_match:
-                item_rate = try_match.group(1)
+            try_match = next(iter(item.xpath("./div/p[@class='collectInfo']/span[@class='starstop-s']/span/@class").extract()), None)
+            if try_match is not None:
+                mtch = re.match(r'starlight stars(\d+)', try_match)
+                item_rate = mtch.group(1)
                 item_rate = int(item_rate)
             else:
                 item_rate = None
