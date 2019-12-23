@@ -13,4 +13,5 @@ scrapyd
 scrapyd-client
 scrapy-redis
 scrapy-splash
+chaperone
 azure

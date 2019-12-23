@@ -47,14 +47,14 @@ python setup_bgmapi.py bdist_egg
 scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg # The actual egg file generated may have a different name
 ```
 
-To setup a scrapyd server, one can certainly do that manually. However, we are providing a docker image to help you achieve that goal more quickly.
+To setup a scrapyd server, one can certainly do that manually. However, we are providing a docker image to help you achieve that goal more quickly. The docker image is has a nginx served as authentication server. To start the docker image, one need to specify the `USERNAME` and `PASSWORD` as environment variable.
 
 ```
-docker run -d -p 6800:6800 wattlebird/scrapyd:latest
-curl http://localhost:6800/schedule.json -d project=bgm -d spider=record -d id_max=100
+docker run -d -p 6810:6810 -e USERNAME=username -e PASSWORD=password wattlebird/scrapyd:latest
+curl http://localhost:6810/schedule.json -d project=bgm -d spider=record -d id_max=100
 ```
 
-Then you can visit http://localhost:6800 to watch your jobs.
+Then you can visit http://localhost:6810 to watch your jobs.
 
 The source code of that docker image is under the folder scrapyd.
 
