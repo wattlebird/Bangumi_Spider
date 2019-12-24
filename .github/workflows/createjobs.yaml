@@ -8,6 +8,7 @@ on:
 jobs:
   create:
     runs-on: ubuntu-latest
+    steps:
     - name: Create jobs
       run: |
         curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=550000
