@@ -1,0 +1,14 @@
+name: Deploy spiders
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 0 1 * *'
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    - name: Create jobs
+      run: |
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=550000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=310000
