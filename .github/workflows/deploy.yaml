@@ -37,6 +37,8 @@ jobs:
         sed -i 's~^username = username$~username = ike~g' scrapy.cfg
         sed -i 's~^password = password$~password = ${{ secrets.SCRAPYD_PASSWORD }}~g' scrapy.cfg
         sed -i 's~^url = http:\/\/localhost:6810\/$~url = http:\/\/cloudymiaoscrapyd.westus2.azurecontainer.io:6810\/~g' scrapy.cfg
+        sed -i 's~^UPLOAD_TO_AZURE_STORAGE = False$~UPLOAD_TO_AZURE_STORAGE = True~g' bgm/settings.py
+        sed -i 's~^UPLOAD_TO_AZURE_STORAGE = False$~UPLOAD_TO_AZURE_STORAGE = True~g' bgmapi/settings.py
         sed -i 's~^AZURE_ACCOUNT_KEY = ""$~AZURE_ACCOUNT_KEY = "${{ secrets.AZURE_BLOB_KEY }}"~g' bgm/settings.py
         sed -i 's~^AZURE_ACCOUNT_KEY = ""$~AZURE_ACCOUNT_KEY = "${{ secrets.AZURE_BLOB_KEY }}"~g' bgmapi/settings.py
     - name: Deploy bgm
