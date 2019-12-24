@@ -19,10 +19,19 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
+    - name: Get scrapyd-client
+      uses: actions/checkout@v2
+      with:
+        repository: scrapy/scrapyd-client
+        ref: 'v1.2.0a1'
+        path: 'scrapyd-client'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install scrapy scrapyd scrapyd-client
+        pip install scrapy scrapyd
+        cd scrapyd-client
+        python setup.py install
+        cd ..
     - name: Update configure files
       run: |
         sed -i 's~^username = username$~username = ike~g' scrapy.cfg
