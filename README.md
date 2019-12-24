@@ -51,7 +51,7 @@ To setup a scrapyd server, one can certainly do that manually. However, we are p
 
 ```
 docker run -d -p 6810:6810 -e USERNAME=username -e PASSWORD=password wattlebird/scrapyd:latest
-curl http://localhost:6810/schedule.json -d project=bgm -d spider=record -d id_max=100
+curl --user username:password http://localhost:6810/schedule.json -d project=bgm -d spider=record -d id_max=100
 ```
 
 Then you can visit http://localhost:6810 to watch your jobs.

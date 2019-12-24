@@ -1,0 +1,40 @@
+name: Deploy spiders
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az container restart -n cloudymiaoscrapyd -g cloudymiao
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install scrapy scrapyd scrapyd-client
+    - name: Update configure files
+      run: |
+        sed -i 's/^username = username$/username = ike/g' scrapy.cfg
+        sed -i 's/^password = password$/password = ${{ secrets.SCRAPYD_PASSWORD }}/g' scrapy.cfg
+        sed -i 's/^url = http:\/\/localhost:6810\/$/url = http:\/\/cloudymiaoscrapyd.westus2.azurecontainer.io:6810\//g' scrapy.cfg
+        sed -i 's/^AZURE_ACCOUNT_KEY = ""$/AZURE_ACCOUNT_KEY = "${{ secrets.AZURE_BLOB_KEY }}"/g' bgm/settings.py
+        sed -i 's/^AZURE_ACCOUNT_KEY = ""$/AZURE_ACCOUNT_KEY = "${{ secrets.AZURE_BLOB_KEY }}"/g' bgmapi/settings.py
+    - name: Deploy bgm
+      run: |
+        python setup_bgm.py bdist_egg
+        scrapyd-deploy bgm --egg dist/project-1.0-py3.7.egg
+    - name: Deploy bgmapi
+      run: |
+        python setup_bgmapi.py bdist_egg
+        scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg
