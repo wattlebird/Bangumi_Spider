@@ -1,4 +1,4 @@
-name: Create corntab jobs
+name: Create crontab jobs
 
 on:
   schedule:
