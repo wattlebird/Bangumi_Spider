@@ -1,4 +1,4 @@
-name: Deploy spiders
+name: Create corntab jobs
 
 on:
   schedule:
