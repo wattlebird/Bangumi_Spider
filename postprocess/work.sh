@@ -42,7 +42,7 @@ gawk -F "\t" '$3=="anime" && length($6)!=0 {printf("%d\t%d\t%d\n", $1, $2, $6)}'
 echo "Doing some preprocessing tasks, like normalizing"
 sort -t$'\t' -k1,1n -k3,3n record.tsv > record.sorted.tsv
 gawk -f record_processing.awk -F "\t" record.sorted.tsv | sort -t$'\t' -k1,1n -k2,2n > record.anime.tsv
-awk -F "\t" '$3=="anime" && length($4)!=0 {printf("%d\t%s\t%d\n", $1, $2, $4)}' subject_"$aujourdhui".tsv > subject.tsv
+awk -F "\t" '$4=="anime" && length($5)!=0 {printf("%d\t%s\t%d\n", $1, $2, $5)}' subject_"$aujourdhui".tsv > subject.tsv
 # 3. generate averaged score pair on avg, cdf and prob normalization methods.
 echo "Generating paired scores."
 cut -f1,2,3 record.anime.tsv | awk -F "\t" -f record_pair.awk > pair.avg.tsv
