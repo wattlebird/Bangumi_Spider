@@ -1,0 +1,27 @@
+name: Build and publish bgmdatapostprocess image
+
+on:
+  push:
+    paths:
+    - 'postprocess/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build postprocess --tag image
+    - name: Log into registry
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u wattlebird --password-stdin
+    - name: Push image
+      run: |
+        docker tag image wattlebird/bgmdatapostprocess:latest
+        docker push wattlebird/bgmdatapostprocess:latest
+    - name: Update image to Azure Container Service
+      run: |
+        az container create --subscription a4cfa100-c706-4f56-8292-e86c35b53ed0 -g cloudymiao -n cloudymiaopostprocess --restart-policy Never --image wattlebird/bgmdatapostprocess:latest
+        az container stop --subscription a4cfa100-c706-4f56-8292-e86c35b53ed0 -g cloudymiao -n cloudymiaopostprocess
