@@ -1,6 +1,9 @@
 name: Deploy spiders
 
-on: [push]
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 0 1 * *'
 
 jobs:
   build:
@@ -13,7 +16,7 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          az container restart -n cloudymiaoscrapyd -g cloudymiao
+          az container start -n cloudymiaoscrapyd -g cloudymiao
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
@@ -49,3 +52,7 @@ jobs:
       run: |
         python setup_bgmapi.py bdist_egg
         scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg
+    - name: Create jobs
+      run: |
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=550000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=310000

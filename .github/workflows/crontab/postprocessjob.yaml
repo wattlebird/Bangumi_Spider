@@ -1,0 +1,20 @@
+name: Postprocessing jobs
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 12 2 * *'
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az container stop -n cloudymiaoscrapyd -g cloudymiao
+          az container start -n cloudymiaopostprocess -g cloudymiao
