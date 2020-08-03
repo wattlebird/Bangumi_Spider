@@ -1,18 +1,21 @@
 #!/bin/bash
 # fetch record and subject file from azure storage service
 
-echo "Begining fetching filename..."
+#echo "Begining fetching filename..."
 
-recordfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix record | sed 1,2d | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
-echo "Record file read as ${recordfile}."
+#recordfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix record | sed 1,2d | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
+#echo "Record file read as ${recordfile}."
 
-subjectfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix subject | sed 1,2d | grep 'subject\-api\-[0-9]\+' | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
-echo "API scraped subject file read as ${subjectfile}."
+#subjectfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix subject | sed 1,2d | grep 'subject\-api\-[0-9]\+' | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
+#echo "API scraped subject file read as ${subjectfile}."
 
 
-az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -n "$recordfile" -f "$recordfile" && echo "Record file downloaded under ${PWD}."
-az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -n "$subjectfile" -f "$subjectfile" && echo "Subject file downloaded under ${PWD}."
+#az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -n "$recordfile" -f "$recordfile" && echo "Record file downloaded under ${PWD}."
+#az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -n "$subjectfile" -f "$subjectfile" && echo "Subject file downloaded under ${PWD}."
 aujourdhui=$(date +"%Y_%m_%d")
+
+recordfile="/home/ike/Data/record_raw.tsv"
+subjectfile="/home/ike/Data/subject_raw.tsv"
 
 # Preprocess files to remove scrapy error
 echo "Preprocessing record and subject files."
@@ -24,7 +27,9 @@ sed 1d $subjectfile | sort -t$'\t' -k2,2n > subject.sorted
 echo "Solving redirected subjects..."
 sed 1d $recordfile | sort -t$'\t' -k2,2 > record.right
 cut -f1,2 subject.sorted | sort -t$'\t' -k2,2 > subject.left
-join -12 -22 -t$'\t' -o 2.1,1.1,2.3,2.4,2.5,2.6,2.7,2.8 subject.left record.right | sort -t$'\t' -k1,1n -k5,5 > record_"$aujourdhui".tsv
+# Join the record with subject order to get real subject id of each record's iid
+# Drop the duplicated <uid, iid> caused by subject-redirection or re-scrape
+join -12 -22 -t$'\t' -o 2.1,1.1,2.3,2.4,2.5,2.6,2.7,2.8 subject.left record.right | sort -t$'\t' -k1,1n -k2,2n | gawk -F "\t" -f record_dedup.awk > record_"$aujourdhui".tsv
 # Remove duplicated subject in subject.tsv
 awk -F "\t" '$1==$2 {print $0;}' < subject.sorted | cut -f2 --complement | sort -t$'\t' -k1,1 > subject_"$aujourdhui".tsv
 echo "Cleaning up..."
@@ -32,8 +37,8 @@ rm subject.left subject.sorted record.right
 
 # publish?
 echo "Publish data."
-az storage file upload --share-name bangumi-publish/subject --source subject_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
-az storage file upload --share-name bangumi-publish/record --source record_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+#az storage file upload --share-name bangumi-publish/subject --source subject_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+#az storage file upload --share-name bangumi-publish/record --source record_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
 
 # 1. filter out ranked anime in record
 echo "Make sure only anime is considered."
