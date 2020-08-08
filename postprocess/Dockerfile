@@ -15,6 +15,6 @@ RUN conda update -y conda \
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-ADD customrank.py work.sh record_pair_prob.spec.awk record_pair.awk record_processing.awk /code/
+ADD customrank.py work.sh record_pair_prob.spec.awk record_pair.awk record_processing.awk record_dedup.awk /code/
 
 ENTRYPOINT ["bash", "work.sh"]
