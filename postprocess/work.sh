@@ -26,9 +26,13 @@ sed 1d $recordfile | sort -t$'\t' -k2,2 > record.right
 cut -f1,2 subject.sorted | sort -t$'\t' -k2,2 > subject.left
 # Join the record with subject order to get real subject id of each record's iid
 # Drop the duplicated <uid, iid> caused by subject-redirection or re-scrape
-join -12 -22 -t$'\t' -o 2.1,1.1,2.3,2.4,2.5,2.6,2.7,2.8 subject.left record.right | sort -t$'\t' -k1,1n -k2,2n | gawk -F "\t" -f record_dedup.awk > record_"$aujourdhui".tsv
+join -12 -22 -t$'\t' -o 2.1,1.1,2.3,2.4,2.5,2.6,2.7,2.8 subject.left record.right | sort -t$'\t' -k1,1n -k2,2n -u > record_"$aujourdhui".tsv
 # Remove duplicated subject in subject.tsv
-awk -F "\t" '$1==$2 {print $0;}' < subject.sorted | cut -f2 --complement | sort -t$'\t' -k1,1 > subject_"$aujourdhui".tsv
+awk -F "\t" '$1==$2 {print $0;}' < subject.sorted | cut -f2 --complement | sort -t$'\t' -k1,1 -u > subject_"$aujourdhui".tsv
+echo "Generating staffs table"
+gawk -F "\t" '$9 {split($9, staffs, ";"); for(s in staffs) { split(staffs[s], people, /:|,/); for(p in people) { if (p!=1 && people[1]) printf("%s\t%s\t%s\t%s\n", $1, $4, people[1], people[p]);} } }' subject_"$aujourdhui".tsv > staffs_"$aujourdhui".tsv
+echo "Generating tags table"
+gawk -F "\t" '$7 {split($7, tags, ";"); for(tag in tags) if (tags[tag]) {printf("%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $5, tags[tag]);}}' record_"$aujourdhui".tsv | sort -u > tags_"$aujourdhui".tsv
 echo "Cleaning up..."
 rm subject.left subject.sorted record.right
 
@@ -36,6 +40,8 @@ rm subject.left subject.sorted record.right
 echo "Publish data."
 az storage file upload --share-name bangumi-publish/subject --source subject_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
 az storage file upload --share-name bangumi-publish/record --source record_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+az storage file upload --share-name bangumi-publish/tags --source tags_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+az storage file upload --share-name bangumi-publish/staffs --source staffs_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
 
 # 1. filter out ranked anime in record
 echo "Make sure only anime is considered."

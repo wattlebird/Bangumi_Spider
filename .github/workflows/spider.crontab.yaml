@@ -54,5 +54,5 @@ jobs:
         scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg
     - name: Create jobs
       run: |
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=550000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=600000
         curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=310000
