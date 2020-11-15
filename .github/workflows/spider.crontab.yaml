@@ -16,7 +16,7 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          az container start -n cloudymiaoscrapyd -g cloudymiao
+          az container start -n cloudynyascrapyd -g cloudymiao
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
@@ -39,7 +39,7 @@ jobs:
       run: |
         sed -i 's~^username = username$~username = ike~g' scrapy.cfg
         sed -i 's~^password = password$~password = ${{ secrets.SCRAPYD_PASSWORD }}~g' scrapy.cfg
-        sed -i 's~^url = http:\/\/localhost:6810\/$~url = http:\/\/cloudymiaoscrapyd.westus2.azurecontainer.io:6810\/~g' scrapy.cfg
+        sed -i 's~^url = http:\/\/localhost:6810\/$~url = http:\/\/cloudynyascrapyd.westus2.azurecontainer.io:6810\/~g' scrapy.cfg
         sed -i 's~^UPLOAD_TO_AZURE_STORAGE = False$~UPLOAD_TO_AZURE_STORAGE = True~g' bgm/settings.py
         sed -i 's~^UPLOAD_TO_AZURE_STORAGE = False$~UPLOAD_TO_AZURE_STORAGE = True~g' bgmapi/settings.py
         sed -i 's~^AZURE_ACCOUNT_KEY = ""$~AZURE_ACCOUNT_KEY = "${{ secrets.AZURE_BLOB_KEY }}"~g' bgm/settings.py
@@ -54,5 +54,5 @@ jobs:
         scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg
     - name: Create jobs
       run: |
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=600000
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudymiaoscrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=310000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudynyascrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=600000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudynyascrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=310000

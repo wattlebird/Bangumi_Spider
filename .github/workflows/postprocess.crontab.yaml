@@ -16,5 +16,5 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          az container stop -n cloudymiaoscrapyd -g cloudymiao
+          az container stop -n cloudynyascrapyd -g cloudymiao
           az container start -n cloudymiaopostprocess -g cloudymiao
