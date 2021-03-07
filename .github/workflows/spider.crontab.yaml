@@ -9,14 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    - name: Azure CLI script
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          az container start -n cloudynyascrapyd -g cloudymiao
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
@@ -54,5 +46,5 @@ jobs:
         scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg
     - name: Create jobs
       run: |
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudynyascrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgm -d spider=record -d id_max=600000
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudynyascrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=310000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=600000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=310000
