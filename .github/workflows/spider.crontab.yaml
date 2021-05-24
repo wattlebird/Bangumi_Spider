@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Delete previous project
+      run: |
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/delproject.json -d project=bgm
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/delproject.json -d project=bgmapi
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
