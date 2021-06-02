@@ -18,24 +18,12 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
-    - name: Get scrapyd-client
-      uses: actions/checkout@v2
-      with:
-        repository: scrapy/scrapyd-client
-        ref: 'v1.2.0a1'
-        path: 'scrapyd-client'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install scrapy scrapyd
-        cd scrapyd-client
-        python setup.py install
-        cd ..
     - name: Update configure files
       run: |
-        sed -i 's~^username = username$~username = ike~g' scrapy.cfg
-        sed -i 's~^password = password$~password = ${{ secrets.SCRAPYD_PASSWORD }}~g' scrapy.cfg
-        sed -i 's~^url = http:\/\/localhost:6810\/$~url = http:\/\/cloudynyascrapyd.westus2.azurecontainer.io:6810\/~g' scrapy.cfg
         sed -i 's~^UPLOAD_TO_AZURE_STORAGE = False$~UPLOAD_TO_AZURE_STORAGE = True~g' bgm/settings.py
         sed -i 's~^UPLOAD_TO_AZURE_STORAGE = False$~UPLOAD_TO_AZURE_STORAGE = True~g' bgmapi/settings.py
         sed -i 's~^AZURE_ACCOUNT_KEY = ""$~AZURE_ACCOUNT_KEY = "${{ secrets.AZURE_BLOB_KEY }}"~g' bgm/settings.py
@@ -43,12 +31,12 @@ jobs:
     - name: Deploy bgm
       run: |
         python setup_bgm.py bdist_egg
-        scrapyd-deploy bgm --egg dist/project-1.0-py3.7.egg
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/addversion.json -F project=bgm -F version=1.0 -F egg=@dist/project-1.0-py3.7.egg
     - name: Deploy bgmapi
       run: |
         python setup_bgmapi.py bdist_egg
-        scrapyd-deploy bgmapi --egg dist/project-1.0-py3.7.egg
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/addversion.json -F project=bgmapi -F version=1.0 -F egg=@dist/project-1.0-py3.7.egg
     - name: Create jobs
       run: |
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=600000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=650000
         curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=350000
