@@ -11,7 +11,7 @@ import datetime
 import os
 from .settings import *
 if UPLOAD_TO_AZURE_STORAGE:
-    from azure.storage.blob import BlockBlobService, ContentSettings
+    from azure.storage.blob import BlobServiceClient
 
 class TsvPipeline(object):
     def __init__(self):
@@ -45,13 +45,11 @@ class TsvPipeline(object):
         file.close()
         os.rename(filename, newname)
         if UPLOAD_TO_AZURE_STORAGE:
-            block_blob_service = BlockBlobService(account_name=AZURE_ACCOUNT_NAME, account_key=AZURE_ACCOUNT_KEY)
-            block_blob_service.create_blob_from_path(AZURE_CONTAINER,
-                                                    newname,
-                                                    newname,
-                                                    content_settings=ContentSettings(content_type='text/tab-separated-values')
-                                                            )
-                                                            
+            blobServiceClient = BlobServiceClient.from_connection_string(AZURE_ACCOUNT_KEY)
+            blobClient = blobServiceClient.get_blob_client(container=AZURE_CONTAINER, blob=newname)
+
+            with open(newname, "rb") as data:
+                blobClient.upload_blob(data)   
 
     def process_item(self, item, spider):
         self.exporter.export_item(item)
