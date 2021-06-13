@@ -3,10 +3,9 @@ WORKDIR /code
 
 RUN apt-get update \
     && apt-get install -y wget curl gawk build-essential
-ENV PATH /opt/conda/bin/:$PATH
-RUN conda update -y conda \
-    && conda install -y numpy scipy pandas cython \
-    && /opt/conda/bin/pip install rankit
+
+RUN conda install -y numpy scipy pandas cython \
+    && pip install rankit
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
