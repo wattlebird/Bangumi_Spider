@@ -6,7 +6,7 @@ RUN apt-get update \
 ENV PATH /opt/conda/bin/:$PATH
 RUN conda update -y conda \
     && conda install -y numpy scipy pandas cython \
-    && pip install rankit
+    && /opt/conda/bin/pip install rankit
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
