@@ -34,7 +34,7 @@ def main(tagfile):
     nxt['tag_confidence'] *= nxt['authority']
     subject_tag_score = nxt.groupby(by=['iid', 'tag'])['tag_confidence'].mean()
 
-    subject_tag_df.drop(columns=['tag_confidence']).merge(subject_tag_score, how='left', left_on=['iid', 'tag'], right_index=True).to_csv("customtag_"+tagfile[-14:], sep='\t', index=False, header=True)
+    subject_tag_df.drop(columns=['tag_confidence']).merge(subject_tag_score, how='left', left_on=['iid', 'tag'], right_index=True).to_csv("customtags_"+tagfile[-14:], sep='\t', index=False, header=True)
 
 if __name__=="__main__":
     args = parser.parse_args()
