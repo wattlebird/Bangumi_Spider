@@ -9,6 +9,6 @@ RUN conda install -y numpy scipy pandas cython \
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-ADD customrank.py customtags.py work.sh record_pair_prob.spec.awk record_pair.awk record_processing.awk /code/
+ADD customrank.py customtags.py generate_matrix.py work.sh /code/
 
 ENTRYPOINT ["bash", "work.sh"]
