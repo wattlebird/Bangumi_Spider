@@ -45,20 +45,12 @@ az storage file upload --share-name bangumi-publish/tags --source tags_"$aujourd
 az storage file upload --share-name bangumi-publish/staffs --source staffs_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
 az storage file upload --share-name bangumi-publish/tags --source customtags_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
 
-# 1. filter out ranked anime in record
-echo "Make sure only anime is considered."
-gawk -F "\t" '$3=="anime" && length($6)!=0 {printf("%d\t%d\t%d\n", $1, $2, $6)}' record_"$aujourdhui".tsv > record.tsv
-# 2. calculate cdf for each user
-echo "Doing some preprocessing tasks, like normalizing"
-sort -t$'\t' -k1,1n -k3,3n record.tsv > record.sorted.tsv
-gawk -f record_processing.awk -F "\t" record.sorted.tsv | sort -t$'\t' -k1,1n -k2,2n > record.anime.tsv
-# 3. generate averaged score pair on avg, cdf and prob normalization methods.
+# 1. generate averaged score pair on avg, cdf and prob normalization methods.
 echo "Generating paired scores."
-python generate_matrix.py record.anime.tsv
-# 4. calculate custom rank using rankit.
+python generate_matrix.py record_"$aujourdhui".tsv
+# 2. calculate custom rank using rankit.
 echo "Calculating rank."
 python customrank.py
-# 5. upload the custom rank to Azure Blob
-rm record.tsv record.sorted.tsv record.anime.tsv subject.tsv
+# 3. upload the custom rank to Azure Blob
 echo "Upload ranking result."
 az storage file upload --share-name bangumi-publish/ranking --source customrank.csv -p customrank_$(date +"%Y_%m_%d").csv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT

@@ -19,7 +19,7 @@ def main(record_file):
     records['rate'] = records['rate'].astype('float32')
     records['cdf'] = records['cdf'].astype('float32')
 
-    itemLen = records.iid.max()
+    itemLen = int(records.iid.max())
     print("start generating mat file, maximal item id {0}".format(itemLen))
 
     avg = []
