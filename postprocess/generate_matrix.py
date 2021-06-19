@@ -4,9 +4,18 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('recordfile', type=str)
+parser.add_argument('subjectfile', type=str)
 
-def main(record_file):
+step = 1000
+
+def main(record_file, subject_file):
     records = pd.read_csv(record_file, sep='\t', header=None, names=['uid', 'iid', 'type', 'status', 'date', 'rate', 'tags', 'comment'], usecols=['uid', 'iid', 'type', 'rate'])
+    subjects = pd.read_csv(subject_file, sep='\t', header=None, names=['iid', 'name', 'name_cn', 'type', 'rank', 'date', 'votenum', 'fav', 'staff'], usecols=['iid', 'name', 'name_cn', 'type', 'rank'])
+
+    subjects['name_merged'] = subjects.apply(lambda x: x['name'] if pd.isna(x['name_cn']) else x['name_cn'], axis=1)
+    subjects = subjects[(subjects['type'] == 'anime') & (~pd.isna(subjects['rank']))]
+    subjects.to_csv("subject.tsv", sep='\t', index=False, header=None, columns=['iid', 'name_merged', 'rank'])
+    print("anime (with rank) only subject.tsv are generated")
 
     records = records[(~pd.isna(records.rate)) & (records.type=='anime')]
 
@@ -19,6 +28,8 @@ def main(record_file):
     records['rate'] = records['rate'].astype('float32')
     records['cdf'] = records['cdf'].astype('float32')
 
+    records = records.merge(subjects.iid, on='iid', how='inner')
+
     itemLen = int(records.iid.max())
     print("start generating mat file, maximal item id {0}".format(itemLen))
 
@@ -26,13 +37,13 @@ def main(record_file):
     prob = []
     cdf = []
 
-    for i in range(itemLen // 1000):
-        record_piece_l = records[(records.iid >= 1000 * i) & (records.iid < 1000 * (i+1))]
-        for j in range(itemLen // 1000):
+    for i in range(itemLen // step):
+        record_piece_l = records[(records.iid >= step * i) & (records.iid < step * (i+1))]
+        for j in range(itemLen // step):
             if i > j:
                 continue;
             
-            record_piece_r = records[(records.iid >= 1000 * j) & (records.iid < 1000 * (j+1))]
+            record_piece_r = records[(records.iid >= step * j) & (records.iid < step * (j+1))]
             records_piece_x = record_piece_l.merge(record_piece_r, how='outer', on='uid', suffixes=('_l', '_r'))
             records_piece_x = records_piece_x[records_piece_x.iid_l < records_piece_x.iid_r]
             records_piece_x['prob_l'] = np.require(records_piece_x['rate_l'] > records_piece_x['rate_r'], dtype='float32')
@@ -50,4 +61,4 @@ def main(record_file):
 
 if __name__=="__main__":
     args = parser.parse_args()
-    main(args.recordfile)
+    main(args.recordfile, args.subjectfile)

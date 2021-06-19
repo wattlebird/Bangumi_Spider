@@ -47,10 +47,9 @@ az storage file upload --share-name bangumi-publish/tags --source customtags_"$a
 
 # 1. generate averaged score pair on avg, cdf and prob normalization methods.
 echo "Generating paired scores."
-python generate_matrix.py record_"$aujourdhui".tsv
+python generate_matrix.py record_"$aujourdhui".tsv subject_"$aujourdhui".tsv
 # 2. calculate custom rank using rankit.
 echo "Calculating rank."
-awk -F "\t" '$4=="anime" && length($5)!=0 {printf("%d\t%s\t%d\n", $1, $2, $5)}' subject_"$aujourdhui".tsv > subject.tsv
 python customrank.py
 # 3. upload the custom rank to Azure Blob
 echo "Upload ranking result."
