@@ -50,6 +50,7 @@ echo "Generating paired scores."
 python generate_matrix.py record_"$aujourdhui".tsv
 # 2. calculate custom rank using rankit.
 echo "Calculating rank."
+awk -F "\t" '$4=="anime" && length($5)!=0 {printf("%d\t%s\t%d\n", $1, $2, $5)}' subject_"$aujourdhui".tsv > subject.tsv
 python customrank.py
 # 3. upload the custom rank to Azure Blob
 echo "Upload ranking result."
