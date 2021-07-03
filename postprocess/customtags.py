@@ -7,6 +7,7 @@ parser.add_argument('tagfile', type=str)
 def main(tagfile):
     tag_df = pd.read_csv(tagfile, sep='\t', header=None, names=['uid', 'iid', 'typ', 'date', 'tag'])
     tag_df.drop(columns=['date'], inplace=True)
+    tag_df['tag'] = tag_df['tag'].str.replace(r"\s+", "")
 
     tag_count = tag_df.groupby(by=['iid'], as_index=False)['uid'].nunique().rename(columns={'uid': 'user_count'})
     tag_user_count = tag_df.groupby(by=['iid', 'tag'], as_index=False)['uid'].nunique().rename(columns={'uid': 'tag_count'})
