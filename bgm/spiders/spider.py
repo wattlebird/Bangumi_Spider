@@ -89,6 +89,8 @@ class RecordSpider(scrapy.Spider):
         username = response.url.split('/')[-1]
         if (not response.xpath(".//*[@id='headerProfile']")) or response.xpath(".//div[@class='tipIntro']"):
             return
+        if username in blockusers:
+            return
         uid = int(response.meta['redirect_urls'][0].split('/')[-1]) if 'redirect_urls' in response.meta else int(username)
         nickname = next(iter(response.xpath(".//*[@class='headerContainer']//*[@class='inner']/a/text()").extract()), "").translate(mpa)
 
@@ -113,12 +115,13 @@ class RecordSpider(scrapy.Spider):
             yield scrapy.Request("http://mirror.bgm.rin.cat/real/list/"+username, callback = self.merge, meta = { 'uid': uid })
 
     def merge(self, response):
-        followlinks = response.xpath(".//div[@id='columnA']/div/div[1]/ul/li[2]//@href").extract() # a list of links
+        followlinks = response.xpath("//ul[@class='navSubTabs']/li/a/@href").extract() # a list of links
         for link in followlinks:
             yield scrapy.Request(u"http://mirror.bgm.rin.cat"+link, callback = self.parse_recorder, meta = { 'uid': response.meta['uid'] })
 
     def parse_recorder(self, response):
         state = response.url.split('/')[-1].split('?')[0]
+        page = 1 if '=' not in response.url else int(response.url.split('=')[1])
         tp = response.url.split('/')[-4]
 
         items = response.xpath(".//*[@id='browserItemList']/li")
@@ -154,7 +157,8 @@ class RecordSpider(scrapy.Spider):
                 watchRecord["comment"]=comment.translate(mpa)
             yield watchRecord
 
-        if len(items)==24:
+        total_count = int(re.search(r"(\d+)", response.xpath("//ul[@class='navSubTabs']/li/a[@class='focus']/span/text()").extract()[0]).group(1))
+        if 24 * page < total_count:
             yield scrapy.Request(getnextpage(response.url),callback = self.parse_recorder, meta = { 'uid': response.meta['uid'] })
 
 class FriendsSpider(scrapy.Spider):
