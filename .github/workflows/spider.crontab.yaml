@@ -10,14 +10,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Delete previous project
-      run: |
-        tempid=$(curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} -s https://wattlebird-scrapyd-uedpn.ondigaitalocean.app/listjobs.json\?project\=bgm | jq -r '.running[0].id')
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/cancel.json -d project=bgm -d job=$tempid
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/delproject.json -d project=bgm
-        tempid=$(curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} -s https://wattlebird-scrapyd-uedpn.ondigaitalocean.app/listjobs.json\?project\=bgmapi | jq -r '.running[0].id')
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/cancel.json -d project=bgmapi -d job=$tempid
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/delproject.json -d project=bgmapi
+    - name: Install doctl
+      uses: digitalocean/action-doctl@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+    - name: Redeploy scrapyd image
+      run: doctl apps create-deployment 1e08d97b-7a8e-4b6c-8635-8aaad64b5e24
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
