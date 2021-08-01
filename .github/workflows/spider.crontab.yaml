@@ -16,6 +16,8 @@ jobs:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     - name: Redeploy scrapyd image
       run: doctl apps create-deployment 1e08d97b-7a8e-4b6c-8635-8aaad64b5e24
+    - name: Wait for image running
+      run: sleep 150s
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
