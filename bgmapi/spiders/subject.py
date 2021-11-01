@@ -15,11 +15,11 @@ mpa = dict([(i, None) for i in range(32)])
 
 class SubjectSpider(scrapy.Spider):
     name = 'subject-api'
-    allowed_domains = ['mirror.api.bgm.rin.cat']
+    allowed_domains = ['mirror.api.bgm.rincat.ch']
 
     def __init__(self, id_min=1, id_max=300000, *args, **kwargs):
         super(SubjectSpider, self).__init__(*args, **kwargs)
-        self.start_urls = ["http://mirror.api.bgm.rin.cat/subject/{0}?responseGroup=medium".format(i) for i in range(int(id_min),int(id_max))]
+        self.start_urls = ["http://mirror.api.bgm.rincat.ch/subject/{0}?responseGroup=medium".format(i) for i in range(int(id_min),int(id_max))]
 
     def parse(self, response):
         id = re.search(r"(\d+)", response.url).group(1)

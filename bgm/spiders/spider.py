@@ -18,7 +18,7 @@ class UserSpider(scrapy.Spider):
             self.id_max=400000
         if not hasattr(self, 'id_min'):
             self.id_min=1
-        self.start_urls = ["http://mirror.bgm.rin.cat/user/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
+        self.start_urls = ["http://mirror.bgm.rincat.ch/user/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
 
     def parse(self, response):
         if len(response.xpath(".//*[@id='headerProfile']"))==0:
@@ -47,7 +47,7 @@ class IndexSpider(scrapy.Spider):
             self.id_max=20000
         if not hasattr(self, 'id_min'):
             self.id_min=1
-        self.start_urls = ["http://mirror.bgm.rin.cat/index/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
+        self.start_urls = ["http://mirror.bgm.rincat.ch/index/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
 
     def parse(self, response):
         if len(response.xpath(".//*[@id='columnSubjectBrowserA']/div[1]/a"))==0:
@@ -77,13 +77,13 @@ class RecordSpider(scrapy.Spider):
                     l = fr.readline().strip()
                     if not l: break;
                     userlist.append(l)
-            self.start_urls = ["http://mirror.bgm.rin.cat/user/"+i for i in userlist]
+            self.start_urls = ["http://mirror.bgm.rincat.ch/user/"+i for i in userlist]
         else:
             if not hasattr(self, 'id_max'):
                 self.id_max=500000
             if not hasattr(self, 'id_min'):
                 self.id_min=1
-            self.start_urls = ["http://mirror.bgm.rin.cat/user/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
+            self.start_urls = ["http://mirror.bgm.rincat.ch/user/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
 
     def parse(self, response):
         username = response.url.split('/')[-1]
@@ -100,24 +100,24 @@ class RecordSpider(scrapy.Spider):
         yield User(name=username, nickname=nickname, uid=uid, joindate=date)
 
         if len(response.xpath(".//*[@id='anime']")):
-            yield scrapy.Request("http://mirror.bgm.rin.cat/anime/list/"+username, callback = self.merge, meta = { 'uid': uid })
+            yield scrapy.Request("http://mirror.bgm.rincat.ch/anime/list/"+username, callback = self.merge, meta = { 'uid': uid })
 
         if len(response.xpath(".//*[@id='game']")):
-            yield scrapy.Request("http://mirror.bgm.rin.cat/game/list/"+username, callback = self.merge, meta = { 'uid': uid })
+            yield scrapy.Request("http://mirror.bgm.rincat.ch/game/list/"+username, callback = self.merge, meta = { 'uid': uid })
 
         if len(response.xpath(".//*[@id='book']")):
-            yield scrapy.Request("http://mirror.bgm.rin.cat/book/list/"+username, callback = self.merge, meta = { 'uid': uid })
+            yield scrapy.Request("http://mirror.bgm.rincat.ch/book/list/"+username, callback = self.merge, meta = { 'uid': uid })
 
         if len(response.xpath(".//*[@id='music']")):
-            yield scrapy.Request("http://mirror.bgm.rin.cat/music/list/"+username, callback = self.merge, meta = { 'uid': uid })
+            yield scrapy.Request("http://mirror.bgm.rincat.ch/music/list/"+username, callback = self.merge, meta = { 'uid': uid })
 
         if len(response.xpath(".//*[@id='real']")):
-            yield scrapy.Request("http://mirror.bgm.rin.cat/real/list/"+username, callback = self.merge, meta = { 'uid': uid })
+            yield scrapy.Request("http://mirror.bgm.rincat.ch/real/list/"+username, callback = self.merge, meta = { 'uid': uid })
 
     def merge(self, response):
         followlinks = response.xpath("//ul[@class='navSubTabs']/li/a/@href").extract() # a list of links
         for link in followlinks:
-            yield scrapy.Request(u"http://mirror.bgm.rin.cat"+link, callback = self.parse_recorder, meta = { 'uid': response.meta['uid'] })
+            yield scrapy.Request(u"http://mirror.bgm.rincat.ch"+link, callback = self.parse_recorder, meta = { 'uid': response.meta['uid'] })
 
     def parse_recorder(self, response):
         state = response.url.split('/')[-1].split('?')[0]
@@ -170,7 +170,7 @@ class FriendsSpider(scrapy.Spider):
             self.id_max=400000
         if not hasattr(self, 'id_min'):
             self.id_min=1
-        self.start_urls = ["http://mirror.bgm.rin.cat/user/"+str(i)+"/friends" for i in range(int(self.id_min),int(self.id_max))]
+        self.start_urls = ["http://mirror.bgm.rincat.ch/user/"+str(i)+"/friends" for i in range(int(self.id_min),int(self.id_max))]
 
     def parse(self, response):
         user = response.url.split('/')[-2]
@@ -186,7 +186,7 @@ class SubjectInfoSpider(scrapy.Spider):
             self.id_max=300000
         if not hasattr(self, 'id_min'):
             self.id_min=1
-        self.start_urls = ["http://mirror.bgm.rin.cat/subject/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
+        self.start_urls = ["http://mirror.bgm.rincat.ch/subject/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
 
     def parse(self, response):
         subject_id = int(response.url.split('/')[-1])
@@ -219,13 +219,13 @@ class SubjectSpider(scrapy.Spider):
                     l = fr.readline().strip()
                     if not l: break;
                     itemlist.append(l)
-            self.start_urls = ["http://mirror.bgm.rin.cat/subject/"+i for i in itemlist]
+            self.start_urls = ["http://mirror.bgm.rincat.ch/subject/"+i for i in itemlist]
         else:
             if not hasattr(self, 'id_max'):
                 self.id_max=300000
             if not hasattr(self, 'id_min'):
                 self.id_min=1
-            self.start_urls = ["http://mirror.bgm.rin.cat/subject/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
+            self.start_urls = ["http://mirror.bgm.rincat.ch/subject/"+str(i) for i in range(int(self.id_min),int(self.id_max))]
 
     def parse(self, response):
         subjectid = int(response.url.split('/')[-1]) # trueid
