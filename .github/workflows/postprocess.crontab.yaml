@@ -13,9 +13,5 @@ jobs:
     - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-    - name: Azure CLI script
-      uses: azure/CLI@v1
-      with:
-        inlineScript: |
-          az container stop -n cloudynyascrapyd -g cloudymiao
-          az container start -n cloudymiaopostprocess -g cloudymiao
+    - run: |
+        az container start -n cloudymiaopostprocess -g cloudymiao
