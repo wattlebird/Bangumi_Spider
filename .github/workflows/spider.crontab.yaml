@@ -43,5 +43,5 @@ jobs:
         curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/addversion.json -F project=bgmapi -F version=1.0 -F egg=@dist/project-1.0-py3.7.egg
     - name: Create jobs
       run: |
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=650000
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=350000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=700000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=400000
