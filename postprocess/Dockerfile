@@ -2,7 +2,7 @@ FROM continuumio/miniconda3
 WORKDIR /code
 
 RUN apt-get update \
-    && apt-get install -y wget curl gawk jq build-essential
+    && apt-get install -y wget curl gawk jq build-essential unzip
 
 RUN conda install -y numpy scipy pandas cython \
     && pip install rankit opencc-python-reimplemented
