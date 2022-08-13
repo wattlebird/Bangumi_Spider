@@ -14,43 +14,24 @@ az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --acc
 az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -n "$subjectfile" -f "$subjectfile" && echo "Subject file downloaded under ${PWD}."
 aujourdhui=$(date +"%Y_%m_%d")
 
-# Preprocess files to remove scrapy error
-echo "Preprocessing record and subject files."
-sed -i 's~\r~~g' $recordfile
-sed -i 's~\r~~g' $subjectfile
+curl -L -o dump.zip $(curl 'https://api.github.com/repos/bangumi/Archive/releases' | jq '.[0].assets[0].browser_download_url' | tr -d '"')
+unzip dump.zip -d dump
 
-echo "Sorting files."
-sed 1d $subjectfile | sort -t$'\t' -k2,2n > subject.sorted
-echo "Solving redirected subjects..."
-sed 1d $recordfile | sort -t$'\t' -k2,2 > record.right
-cut -f1,2 subject.sorted | sort -t$'\t' -k2,2 > subject.left
-# Join the record with subject order to get real subject id of each record's iid
-# Drop the duplicated <uid, iid> caused by subject-redirection or re-scrape
-join -12 -22 -t$'\t' -o 2.1,1.1,2.3,2.4,2.5,2.6,2.7,2.8 subject.left record.right | sort -t$'\t' -k1,1n -k2,2n -u > record_"$aujourdhui".tsv
-# Remove duplicated subject in subject.tsv
-awk -F "\t" '$1==$2 {print $0;}' < subject.sorted | cut -f2 --complement | sort -t$'\t' -k1,1 -u > subject_"$aujourdhui".tsv
-echo "Generating staffs table"
-gawk -F "\t" '$9 {split($9, staffs, ";"); for(s in staffs) { split(staffs[s], people, /:|,/); for(p in people) { if (p!=1 && people[1]) printf("%s\t%s\t%s\t%s\n", $1, $4, people[1], people[p]);} } }' subject_"$aujourdhui".tsv > staffs_"$aujourdhui".tsv
-echo "Generating tags table"
-gawk -F "\t" '$7 {split($7, tags, ";"); for(tag in tags) if (tags[tag]) {printf("%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $5, tags[tag]);}}' record_"$aujourdhui".tsv | sort -u > tags_"$aujourdhui".tsv
-python customtags.py tags_"$aujourdhui".tsv
-echo "Cleaning up..."
-rm subject.left subject.sorted record.right
+python record.py $recordfile $subjectfile dump/subject.jsonlines
+python customtags.py $recordfile dump/subject.jsonlines
 
 # publish?
 echo "Publish data."
-az storage file upload --share-name bangumi-publish/subject --source subject_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
-az storage file upload --share-name bangumi-publish/record --source record_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
-az storage file upload --share-name bangumi-publish/tags --source tags_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
-az storage file upload --share-name bangumi-publish/staffs --source staffs_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
-az storage file upload --share-name bangumi-publish/tags --source customtags_"$aujourdhui".tsv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+az storage blob upload -c database -f subject_archive_"$aujourdhui".jsonlines --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+az storage blob upload -c database -f subject_entity_"$aujourdhui".jsonlines --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+az storage blob upload -c database -f tags_"$aujourdhui".jsonlines --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
 
 # 1. generate averaged score pair on avg, cdf and prob normalization methods.
 echo "Generating paired scores."
-python generate_matrix.py record_"$aujourdhui".tsv subject_"$aujourdhui".tsv
+python generate_matrix.py $recordfile subject_archive_"$aujourdhui".jsonlines
 # 2. calculate custom rank using rankit.
 echo "Calculating rank."
 python customrank.py
 # 3. upload the custom rank to Azure Blob
 echo "Upload ranking result."
-az storage file upload --share-name bangumi-publish/ranking --source customrank.csv -p customrank_$(date +"%Y_%m_%d").csv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+az storage blob upload -c database -f customrank.csv -n customrank_$(date +"%Y_%m_%d").csv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT

@@ -2,13 +2,13 @@ FROM continuumio/miniconda3
 WORKDIR /code
 
 RUN apt-get update \
-    && apt-get install -y wget curl gawk build-essential
+    && apt-get install -y wget curl gawk jq build-essential
 
 RUN conda install -y numpy scipy pandas cython \
-    && pip install rankit
+    && pip install rankit opencc-python-reimplemented
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-ADD customrank.py customtags.py generate_matrix.py work.sh /code/
+ADD customrank.py customtags.py generate_matrix.py record.py wikiparser.py work.sh /code/
 
 ENTRYPOINT ["bash", "work.sh"]
