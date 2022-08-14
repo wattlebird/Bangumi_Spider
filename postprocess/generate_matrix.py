@@ -14,7 +14,7 @@ def main(record_file, subject_file):
 
     subjects['name_merged'] = subjects.apply(lambda x: x['name'] if pd.isna(x['name_cn']) else x['name_cn'], axis=1)
     subjects = subjects[(subjects['type'] == 'anime') & (~pd.isnull(subjects['rank']) | (subjects['rate_count'] >= 50))]
-    subjects.to_csv("subject.tsv", sep='\t', index=False, header=None, columns=['iid', 'name_merged', 'rank'])
+    subjects.to_csv("subject.tsv", sep='\t', index=False, header=None, columns=['id', 'name_merged', 'rank'])
     print("anime (with rank) only subject.tsv are generated")
 
     records = records.merge(subjects[['id']], left_on='iid', right_on='id')
@@ -29,7 +29,7 @@ def main(record_file, subject_file):
     records['rate'] = records['rate'].astype('float32')
     records['cdf'] = records['cdf'].astype('float32')
 
-    records = records.merge(subjects.iid, on='iid', how='inner')
+    records = records.merge(subjects.id, left_on='iid', right_on='id', how='inner')
 
     itemLen = int(records.iid.max())
     print("start generating mat file, maximal item id {0}".format(itemLen))
