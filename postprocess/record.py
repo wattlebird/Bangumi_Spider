@@ -19,7 +19,10 @@ def info_to_json(info):
 
 def get_type(s):
     if s:
-        typ = re.search(r"Infobox(\s([/\w]+))?\s?\r?\n", s).group(2)
+        typeboxmatch = re.search(r"Infobox(\s([/\w]+))?\s?\r?\n", s)
+        if typeboxmatch is None:
+            return None
+        typ = typeboxmatch.group(2)
         if typ is None or typ == 'None':
             return None
         if typ.startswith('animanga'):
