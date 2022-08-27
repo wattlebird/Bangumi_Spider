@@ -69,5 +69,5 @@ subject = pd.read_csv("subject.tsv", delimiter='\t', dtype={
 }, header=None, names=['iid', 'subjectname', 'rank'], engine='c')
 
 table = mergedRank.merge(subject, left_on='name', right_on='iid', suffixes=('_custom', '_bangumi'))
-table['rank_bangumi'] = table.rank_bangumi.astype('uint32')
+table['rank_bangumi'] = table.rank_bangumi.astype('UInt32')
 table.to_csv("customrank.csv", columns=['name', 'rank_custom', 'rank_bangumi', 'subjectname'], index=False, header=True)

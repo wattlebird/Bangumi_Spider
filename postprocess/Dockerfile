@@ -4,7 +4,7 @@ WORKDIR /code
 RUN apt-get update \
     && apt-get install -y wget curl gawk jq build-essential unzip
 
-RUN conda install -y numpy scipy pandas cython \
+RUN conda install -y numpy scipy pandas \
     && pip install rankit opencc-python-reimplemented
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
