@@ -44,4 +44,4 @@ jobs:
     - name: Create jobs
       run: |
         curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=800000
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=400000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=450000

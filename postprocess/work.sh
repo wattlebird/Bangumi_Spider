@@ -35,3 +35,4 @@ python customrank.py
 # 3. upload the custom rank to Azure Blob
 echo "Upload ranking result."
 az storage blob upload -c database -f customrank.csv -n customrank_$(date +"%Y_%m_%d").csv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+
