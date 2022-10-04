@@ -15,7 +15,7 @@ jobs:
       with:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     - name: Redeploy scrapyd image
-      run: doctl apps create-deployment 1e08d97b-7a8e-4b6c-8635-8aaad64b5e24
+      run: doctl apps create-deployment b972db9d-8714-4802-bb64-087adc5ec6c4
     - name: Wait for image running
       run: sleep 150s
     - uses: actions/checkout@v2
@@ -36,12 +36,12 @@ jobs:
     - name: Deploy bgm
       run: |
         python setup_bgm.py bdist_egg
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/addversion.json -F project=bgm -F version=1.0 -F egg=@dist/project-1.0-py3.7.egg
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://shark-app-hycy3.ondigitalocean.app/addversion.json -F project=bgm -F version=1.0 -F egg=@dist/project-1.0-py3.7.egg
     - name: Deploy bgmapi
       run: |
         python setup_bgmapi.py bdist_egg
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/addversion.json -F project=bgmapi -F version=1.0 -F egg=@dist/project-1.0-py3.7.egg
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://shark-app-hycy3.ondigitalocean.app/addversion.json -F project=bgmapi -F version=1.0 -F egg=@dist/project-1.0-py3.7.egg
     - name: Create jobs
       run: |
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=800000
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://wattlebird-scrapyd-uedpn.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=450000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://shark-app-hycy3.ondigitalocean.app/schedule.json -d project=bgm -d spider=record -d id_max=800000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} https://shark-app-hycy3.ondigitalocean.app/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=450000
