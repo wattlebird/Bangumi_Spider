@@ -16,11 +16,11 @@ NEWSPIDER_MODULE = 'bgmapi.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'bgmapi (+http://www.yourdomain.com)'
+USER_AGENT = 'bgmapi (https://github.com/wattlebird/Bangumi_Spider)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-LOG_LEVEL='INFO'
+LOG_LEVEL='DEBUG'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -66,7 +66,7 @@ SPIDER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'bgmapi.pipelines.TsvPipeline': 300,
+    'bgmapi.pipelines.AzureBlobPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -78,7 +78,7 @@ AUTOTHROTTLE_ENABLED = True
 #AUTOTHROTTLE_MAX_DELAY = 60
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-AUTOTHROTTLE_TARGET_CONCURRENCY = 0.1
+AUTOTHROTTLE_TARGET_CONCURRENCY = 1
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 RETRY_TIMES = 10
@@ -91,6 +91,14 @@ RETRY_TIMES = 10
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
+
+FEEDS = {
+    'items.jsonlines': {
+        'format': 'jsonlines',
+        'overwrite': True
+    }
+}
+FEED_EXPORT_ENCODING = 'utf-8'
 
 ########################################
 # The following settings are only applicable to Ronnie Wang's spider setting
