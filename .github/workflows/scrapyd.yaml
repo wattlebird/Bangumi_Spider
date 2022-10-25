@@ -9,9 +9,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: docker build scrapyd --tag image
