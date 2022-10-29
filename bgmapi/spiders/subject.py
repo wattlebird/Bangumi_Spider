@@ -2,63 +2,40 @@
 import scrapy
 import re
 import json
-from bgmapi.items import Subject
-
-subjectTypeLut = {
-    1: 'book',
-    2: 'anime',
-    3: 'music',
-    4: 'game',
-    6: 'real'
-}
-mpa = dict([(i, None) for i in range(32)])
 
 class SubjectSpider(scrapy.Spider):
     name = 'subject-api'
-    allowed_domains = ['mirror.api.bgm.rincat.ch']
 
-    def __init__(self, id_min=1, id_max=300000, *args, **kwargs):
+    def __init__(self, use_original=True, token="", id_min=1, id_max=400000, *args, **kwargs):
         super(SubjectSpider, self).__init__(*args, **kwargs)
-        self.start_urls = ["http://mirror.api.bgm.rincat.ch/subject/{0}?responseGroup=medium".format(i) for i in range(int(id_min),int(id_max))]
+        self.token = token
+        self.use_original = use_original if type(use_original) == bool else use_original == "True"
+        self.id_min = int(id_min)
+        self.id_max = int(id_max)
+
+    def start_requests(self):
+        for i in range(self.id_min, self.id_max):
+            url = "https://{0}/v0/subjects/{1}".format("api.bgm.tv" if self.use_original else "mirror.api.bgm.rincat.ch", i)
+            yield scrapy.Request(url, headers={'Authorization': 'Bearer {0}'.format(self.token)})
+
 
     def parse(self, response):
         id = re.search(r"(\d+)", response.url).group(1)
         order = id if not "redirect_urls" in response.meta else re.search(r"(\d+)", response.meta["redirect_urls"][0]).group(1)
         
-        data = json.loads(response.body_as_unicode())
+        data = response.json()
         if 'error' in data:
             return
-        typ = subjectTypeLut[data['type']]
-        name = data['name']
-        name_cn = data['name_cn']
-        rank = data.get('rank', '')
-        votenum = data['rating']['total'] if 'rating' in data else 0
-        if 'collection' not in data:
-            favnum = [0,0,0,0,0]
-        else:
-            favnum = [
-                data['collection'].get('wish', 0),
-                data['collection'].get('collect', 0),
-                data['collection'].get('doing', 0),
-                data['collection'].get('on_hold', 0),
-                data['collection'].get('dropped', 0)
-            ]
-        date = data['air_date']
-
-        staff = dict()
-        if data['staff']:
-            for stf in data['staff']:
-                for role in stf['jobs']:
-                    t = staff.setdefault(role, [])
-                    t.append(str(stf['id']))
-        
-        yield Subject(subjectid=id,
-                      subjecttype=typ,
-                      subjectname=name.translate(mpa),
-                      subjectname_cn=name_cn.translate(mpa),
-                      order=order,
-                      rank=rank,
-                      votenum=votenum,
-                      favnum=';'.join([str(itm) for itm in favnum]),
-                      date=date,
-                      staff=staff)
+        if data['locked']:
+            return
+        data.pop('images')
+        data.pop('platform')
+        data.pop('summary')
+        data.pop('infobox')
+        data.pop('total_episodes')
+        data.pop('eps')
+        data.pop('volumes')
+        data.pop('locked')
+        data.pop('nsfw')
+        data['order'] = order
+        yield data
