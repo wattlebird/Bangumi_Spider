@@ -15,14 +15,13 @@ jobs:
       with:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     - name: Redeploy scrapyd image
-      run: doctl apps create-deployment b972db9d-8714-4802-bb64-087adc5ec6c4
+      run: doctl apps create-deployment 919b7d00-56d2-4fad-a7ec-49ac08fecfba
     - name: Wait for image running
       run: sleep 150s
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v1
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
-        python-version: 3.10
+        python-version: '3.10' 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
