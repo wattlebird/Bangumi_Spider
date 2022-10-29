@@ -20,7 +20,7 @@ USER_AGENT = 'bgmapi (https://github.com/wattlebird/Bangumi_Spider)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-LOG_LEVEL='DEBUG'
+LOG_LEVEL='INFO'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -78,7 +78,7 @@ AUTOTHROTTLE_ENABLED = True
 #AUTOTHROTTLE_MAX_DELAY = 60
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-AUTOTHROTTLE_TARGET_CONCURRENCY = 1
+AUTOTHROTTLE_TARGET_CONCURRENCY = 0.25
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 RETRY_TIMES = 10
@@ -93,7 +93,7 @@ RETRY_TIMES = 10
 DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
 
 FEEDS = {
-    'items.jsonlines': {
+    '%(name)s.jsonlines': {
         'format': 'jsonlines',
         'overwrite': True
     }

@@ -6,7 +6,6 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 from scrapy import signals
-from scrapy.exporters import CsvItemExporter
 import datetime
 import os
 from .settings import *
@@ -25,6 +24,12 @@ class AzureBlobPipeline(object):
 
     def spider_closed(self, spider):
         print("spider_closed involked")
+        if spider.name=='subject-api':
+            os.rename("subject-api.jsonlines", f"subject-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines")
+        if spider.name=='collections-api':
+            os.rename("collections-api.jsonlines", f"collections-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines")
+        if spider.name=='user-api':
+            os.rename("user-api.jsonlines", f"user-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines")
         if UPLOAD_TO_AZURE_STORAGE:
             blobServiceClient = BlobServiceClient.from_connection_string(AZURE_ACCOUNT_KEY)
             blobClient = blobServiceClient.get_blob_client(container=AZURE_CONTAINER, blob=newname)

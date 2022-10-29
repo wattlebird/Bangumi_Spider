@@ -13,5 +13,4 @@ scrapyd
 scrapyd-client
 scrapy-redis
 scrapy-splash
-chaperone
 azure-storage-blob==12.8.1
