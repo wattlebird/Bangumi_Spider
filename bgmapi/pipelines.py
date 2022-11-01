@@ -25,11 +25,14 @@ class AzureBlobPipeline(object):
     def spider_closed(self, spider):
         print("spider_closed involked")
         if spider.name=='subject-api':
-            os.rename("subject-api.jsonlines", f"subject-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines")
+            newname = f"subject-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines"
+            os.rename("subject-api.jsonlines", newname)
         if spider.name=='collections-api':
-            os.rename("collections-api.jsonlines", f"collections-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines")
+            newname = f"collections-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines"
+            os.rename("collections-api.jsonlines", newname)
         if spider.name=='user-api':
-            os.rename("user-api.jsonlines", f"user-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines")
+            newname = f"user-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines"
+            os.rename("user-api.jsonlines", newname)
         if UPLOAD_TO_AZURE_STORAGE:
             blobServiceClient = BlobServiceClient.from_connection_string(AZURE_ACCOUNT_KEY)
             blobClient = blobServiceClient.get_blob_client(container=AZURE_CONTAINER, blob=newname)
