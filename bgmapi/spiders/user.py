@@ -18,6 +18,8 @@ class UserSpider(scrapy.Spider):
             yield scrapy.Request(url)
 
     def parse(self, res):
+        if res.status == 404:
+            return
         user = res.json()
         user.pop('avatar')
         yield user

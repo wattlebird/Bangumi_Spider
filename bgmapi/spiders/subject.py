@@ -20,6 +20,8 @@ class SubjectSpider(scrapy.Spider):
 
 
     def parse(self, response):
+        if response.status == 404:
+            return
         id = re.search(r"(\d+)", response.url).group(1)
         order = id if not "redirect_urls" in response.meta else re.search(r"(\d+)", response.meta["redirect_urls"][0]).group(1)
         

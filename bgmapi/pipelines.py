@@ -8,6 +8,7 @@
 from scrapy import signals
 import datetime
 import os
+import glob
 from .settings import *
 if UPLOAD_TO_AZURE_STORAGE:
     from azure.storage.blob import BlobServiceClient
@@ -22,8 +23,19 @@ class AzureBlobPipeline(object):
         crawler.signals.connect(pipeline.spider_closed, signals.spider_closed)
         return pipeline
 
+    def open_spider(self, spider):
+        if spider.name=='subject-api':
+            lst = glob.glob('subject-api*.jsonlines')
+        if spider.name=='collections-api':
+            lst = glob.glob('collections-api*.jsonlines')
+        if spider.name=='user-api':
+            lst = glob.glob('user-api*.jsonlines')
+        print(f"Existing files removed: {lst}")
+        for f in lst:
+            os.remove(f)
+
     def spider_closed(self, spider):
-        print("spider_closed involked")
+        print("spider_closed invoked")
         if spider.name=='subject-api':
             newname = f"subject-api.{datetime.datetime.utcnow().strftime('%Y-%m-%d')}.jsonlines"
             os.rename("subject-api.jsonlines", newname)
