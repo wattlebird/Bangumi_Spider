@@ -3,10 +3,10 @@
 
 echo "Begining fetching filename..."
 
-recordfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix record | sed 1,2d | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
+recordfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix collections | sed 1,2d | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
 echo "Record file read as ${recordfile}."
 
-subjectfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix subject | sed 1,2d | grep 'subject\-api\-[0-9]\+' | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
+subjectfile=$(az storage blob list -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -o table --prefix subject | sed 1,2d | tr -s '\040' '\011' | cut -f1,6 | sort -t$'\t' -k2,2r | sed 1q | sed 's/\t.*//g')
 echo "API scraped subject file read as ${subjectfile}."
 
 
@@ -17,7 +17,7 @@ aujourdhui=$(date +"%Y_%m_%d")
 curl -L -o dump.zip $(curl 'https://api.github.com/repos/bangumi/Archive/releases' | jq '.[0].assets[0].browser_download_url' | tr -d '"')
 unzip dump.zip -d dump
 
-python record.py $recordfile $subjectfile dump/subject.jsonlines
+python record.py $subjectfile dump/subject.jsonlines
 python customtags.py $recordfile dump/subject.jsonlines
 
 # publish?

@@ -7,7 +7,6 @@ from datetime import date
 from wikiparser import parse, WikiSyntaxError
 
 parser = argparse.ArgumentParser()
-parser.add_argument('recordfile', type=str)
 parser.add_argument('subjectfile', type=str)
 parser.add_argument('subjectarchive', type=str)
 
@@ -41,8 +40,17 @@ def get_type(s):
         return None
 
 def resolve_type(r):
-    if not pd.isnull(r['subjecttype']):
-        return r['subjecttype']
+    if not pd.isnull(r['type']):
+        if r['type'] == 1:
+            return 'book'
+        if r['type'] == 2:
+            return 'anime'
+        if r['type'] == 3:
+            return 'music'
+        if r['type'] == 4:
+            return 'game'
+        if r['type'] == 6:
+            return 'real'
     else:
         return r['type_parsed']
 
@@ -76,35 +84,35 @@ def normalize(tag):
     rtn = converter.convert(rtn)
     return rtn
 
-def main(fRec, fSub, fSubAr):
+def main(fSub, fSubAr):
     print("Function record.py")
     today = date.today()
-    record_raw = pd.read_csv(fRec, sep='\t', parse_dates=['adddate'], error_bad_lines=False, warn_bad_lines=True)
-    print(f"Read file {fRec}, altogether {record_raw.shape[0]} lines.")
-    subject_raw = pd.read_csv(fSub, sep='\t', dtype={'rank': 'Int32'}, error_bad_lines=False, warn_bad_lines=True)
+    subject_raw = pd.read_json(fSub, lines=True)
     print(f"Read file {fSub}, altogether {subject_raw.shape[0]} lines.")
     subject_ar = pd.read_json(fSubAr, lines=True)
     print(f"Read file {fSubAr}, altogether {subject_ar.shape[0]} lines.")
 
-    subject_ar = subject_ar.merge(subject_raw[['order', 'subjecttype', 'rank']], how='left', left_on='id', right_on='order')
+    subject_raw['wish_count'] = subject_raw['collection'].apply(lambda x: x['wish'])
+    subject_raw['on_hold_count'] = subject_raw['collection'].apply(lambda x: x['on_hold'])
+    subject_raw['dropped_count'] = subject_raw['collection'].apply(lambda x: x['dropped'])
+    subject_raw['do_count'] = subject_raw['collection'].apply(lambda x: x['doing'])
+    subject_raw['collect_count'] = subject_raw['collection'].apply(lambda x: x['collect'])
+    subject_raw['fav_count'] = subject_raw['collection'].apply(lambda x: x['wish'] + x['on_hold'] + x['dropped'] + x['doing'] + x['collect'])
+    subject_raw['rank'] = subject_raw['rating'].apply(lambda x: x['rank'])
+    subject_raw['rate_count'] = subject_raw['rating'].apply(lambda x: x['total'])
+    subject_ar = subject_ar.merge(subject_raw[['id', 'rank', 'wish_count', 'on_hold_count', 'dropped_count', 'do_count', 'collect_count', 'fav_count', 'rate_count']].groupby('id').first(), how='left', left_on='id', right_index=True)
 
     subject_ar['type_parsed'] = subject_ar['infobox'].apply(get_type)
     subject_ar['type'] = subject_ar.apply(resolve_type, axis=1)
-    subject_ar.drop(columns=['subjecttype', 'type_parsed', 'order'], inplace=True)
+    subject_ar.drop(columns=['type_parsed'], inplace=True)
     print(f"Types and ranks generated for subjects.")
 
     subject_ar['infobox'] = subject_ar['infobox'].apply(info_to_json)
     subject_ar['summary'] = subject_ar['summary'].apply(lambda x: x.replace("\x00", ""))
-    record_raw.drop_duplicates(subset=['uid', 'iid'], keep='last', inplace=True)
-
-    fav_count = record_raw.groupby(by='iid')['uid'].count()
-    rate_count = record_raw[~pd.isnull(record_raw.rate)].groupby(by='iid')['uid'].count()
-    state_count = record_raw.groupby(by=['iid', 'state'])['uid'].count().unstack()
-    subject_ar = subject_ar.merge(fav_count.rename('fav_count'), how='left', left_on='id', right_index=True)\
-                            .merge(rate_count.rename('rate_count'), how='left', left_on='id', right_index=True)\
-                            .merge(state_count.add_suffix('_count'), how='left', left_on='id', right_index=True)
-    subject_ar.fillna({'fav_count': 0, 'rate_count': 0, 'collect_count': 0, 'do_count': 0, 'dropped_count': 0, 'on_hold_count': 0, 'wish_count': 0}, inplace=True)
-    subject_ar = subject_ar.astype({'fav_count': int, 'rate_count': int, 'collect_count': int, 'do_count': int, 'dropped_count': int, 'on_hold_count': int, 'wish_count': int})
+    
+    subject_ar.fillna({'fav_count': 0, 'rate_count': 0, 'collect_count': 0, 'do_count': 0, 'dropped_count': 0, 'on_hold_count': 0, 'wish_count': 0, 'rank': 0}, inplace=True)
+    subject_ar = subject_ar.astype({'fav_count': int, 'rate_count': int, 'collect_count': int, 'do_count': int, 'dropped_count': int, 'on_hold_count': int, 'wish_count': int, 'rank': int})
+    subject_ar.loc[subject_ar['rank'] == 0, 'rank'] = pd.NA
     print(f"Statistics generated for subjects.")
 
     subject_ar.to_json(f"subject_archive_{today.strftime('%Y_%m_%d')}.jsonlines", orient='records', force_ascii=False, lines=True)
@@ -125,4 +133,4 @@ def main(fRec, fSub, fSubAr):
 
 if __name__=="__main__":
     args = parser.parse_args()
-    main(args.recordfile, args.subjectfile, args.subjectarchive)
+    main(args.subjectfile, args.subjectarchive)
