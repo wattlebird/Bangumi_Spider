@@ -22,7 +22,7 @@ def main(record_file, subject_file):
     print("anime (with rank) only subject.tsv are generated")
 
     records = records.merge(subjects[['id']], left_on='subject_id', right_on='id')
-    records = records[~pd.isnull(records['rate'])]
+    records = records[records['rate'] != 0]
 
     user_cdf = records.groupby(by=['user_order', 'rate'], as_index=False)['subject_id'].count().rename(columns={'subject_id': 'cnt'}).sort_values(by=['user_order', 'rate'], ignore_index=True)
     user_cdf['cumsum'] = user_cdf.groupby(by='user_order')['cnt'].cumsum()
