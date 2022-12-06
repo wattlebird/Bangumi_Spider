@@ -20,6 +20,8 @@ class CollectionsSpider(scrapy.Spider):
         if res.status == 404:
             return
         user = res.json()
+        if user['code'] == 404:
+            return
         if user['usergroup'] == 4 or user['usergroup'] == 5:
             return
         yield scrapy.Request(f"https://{'api.bgm.tv' if self.use_original else 'mirror.api.bgm.rincat.ch'}/v0/users/{user['username']}/collections?limit=50&offset=0",

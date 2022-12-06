@@ -39,4 +39,4 @@ jobs:
     - name: Create jobs
       run: |
         curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudynyascrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=subject-api -d id_max=410000 -d token=${{ secrets.BANGUMI_TOKEN }}
-        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudynyascrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=collections-api -d id_max=750000
+        curl --user ike:${{ secrets.SCRAPYD_PASSWORD }} http://cloudynyascrapyd.westus2.azurecontainer.io:6810/schedule.json -d project=bgmapi -d spider=collections-api -d id_max=700000
