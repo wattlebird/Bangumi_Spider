@@ -20,7 +20,7 @@ class CollectionsSpider(scrapy.Spider):
         if res.status == 404:
             return
         user = res.json()
-        if user['code'] == 404:
+        if 'code' in user and user['code'] == 404:
             return
         if user['usergroup'] == 4 or user['usergroup'] == 5:
             return
