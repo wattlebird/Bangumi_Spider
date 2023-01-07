@@ -23,7 +23,7 @@ class SubjectSpider(scrapy.Spider):
         if response.status == 404:
             return
         id = re.search(r"(\d+)", response.url).group(1)
-        order = id if not "redirect_urls" in response.meta else re.search(r"(\d+)", response.meta["redirect_urls"][0]).group(1)
+        order = id if not "redirect_urls" in response.meta else response.meta['redirect_urls'][0].split('/')[-1]
         
         data = response.json()
         if 'error' in data:

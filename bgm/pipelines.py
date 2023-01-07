@@ -30,11 +30,11 @@ class TsvPipeline(object):
         return pipeline
 
     def spider_opened(self, spider):
-        file = open(spider.name+'-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv*', 'wb')
+        file = open(spider.name+'-'+datetime.datetime.utcnow().strftime('%Y-%m-%d')+'.tsv*', 'wb')
         self.files[spider] = [file]
         self.exporter = CsvItemExporter(file, include_headers_line=True, join_multivalued=';', encoding="utf-8", delimiter='\t')
         if spider.name=='record':
-            userfile = open('user-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv*', 'wb')
+            userfile = open('user-'+datetime.datetime.utcnow().strftime("%Y-%m-%d")+'.tsv*', 'wb')
             self.files[spider].append(userfile)
             self.userexporter = CsvItemExporter(userfile, include_headers_line=True, join_multivalued=';', encoding="utf-8", delimiter='\t')
             self.userexporter.fields_to_export = ['uid', 'name', 'nickname', 'joindate']
@@ -56,14 +56,14 @@ class TsvPipeline(object):
         self.exporter.finish_exporting()
         file = self.files[spider].pop(0)
         filename = file.name
-        newname = filename[:-5]+'-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv'
+        newname = filename[:-5]+'-'+datetime.datetime.utcnow().strftime('%Y-%m-%d')+'.tsv'
         file.close()
         os.rename(filename, newname)
         if spider.name == 'record':
             self.userexporter.finish_exporting()
             file = self.files[spider].pop(0)
             userfilename = file.name
-            newuserfilename = userfilename[:-5]+'-'+datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")+'.tsv'
+            newuserfilename = userfilename[:-5]+'-'+datetime.datetime.utcnow().strftime("%Y-%m-%d")+'.tsv'
             file.close()
             os.rename(userfilename, newuserfilename)
 
