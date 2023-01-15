@@ -39,5 +39,5 @@ class SubjectSpider(scrapy.Spider):
         data.pop('volumes')
         data.pop('locked')
         data.pop('nsfw')
-        data['order'] = order
+        data['order'] = int(order)
         yield data
