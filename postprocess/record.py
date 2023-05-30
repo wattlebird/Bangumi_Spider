@@ -39,6 +39,18 @@ def get_type(s):
     else:
         return None
 
+def get_detailed_type(s):
+    if s:
+        typeboxmatch = re.search(r"Infobox(\s([/\w]+))?\s?\r?\n", s)
+        if typeboxmatch is None:
+            return None
+        typ = typeboxmatch.group(2)
+        if typ is None or typ == 'None':
+            return None
+        return typ
+    else:
+        return None
+
 def resolve_type(r):
     if not pd.isnull(r['type']):
         if r['type'] == 1:
@@ -104,6 +116,7 @@ def main(fSub, fSubAr):
 
     subject_ar['type_parsed'] = subject_ar['infobox'].apply(get_type)
     subject_ar['type'] = subject_ar.apply(resolve_type, axis=1)
+    subject_ar['subtype'] = subject_ar['infobox'].apply(get_detailed_type)
     subject_ar.drop(columns=['type_parsed'], inplace=True)
     print(f"Types and ranks generated for subjects.")
 

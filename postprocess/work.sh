@@ -14,7 +14,7 @@ az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --acc
 az storage blob download -c bangumi --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT -n "$subjectfile" -f "$subjectfile" && echo "Subject file downloaded under ${PWD}."
 aujourdhui=$(date +"%Y_%m_%d")
 
-curl -L -o dump.zip $(curl 'https://api.github.com/repos/bangumi/Archive/releases' | jq '.[0].assets[0].browser_download_url' | tr -d '"')
+curl -L -o dump.zip $(curl 'https://api.github.com/repos/bangumi/Archive/releases' | jq '.[0].assets|max_by(.created_at)|.browser_download_url' | tr -d '"')
 unzip dump.zip -d dump
 
 python record.py $subjectfile dump/subject.jsonlines
@@ -36,3 +36,6 @@ python customrank.py
 echo "Upload ranking result."
 az storage blob upload -c database -f customrank.csv -n customrank_$(date +"%Y_%m_%d").csv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
 
+echo "Generating comprehensive subject archive"
+python comprehensive.py subject_archive_"$aujourdhui".jsonlines tags_"$aujourdhui".jsonlines customrank.csv
+az storage blob upload -c elastic -f subject_comprehensive.jsonlines -n subject_comprehensive_$(date +"%Y_%m_%d").csv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT

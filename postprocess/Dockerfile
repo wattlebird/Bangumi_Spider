@@ -5,10 +5,10 @@ RUN apt-get update \
     && apt-get install -y wget curl gawk jq build-essential unzip
 
 RUN conda install -y numpy scipy pandas pyarrow \
-    && pip install rankit opencc-python-reimplemented
+    && pip install rankit opencc-python-reimplemented dateparser
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-ADD customrank.py customtags.py generate_matrix.py record.py wikiparser.py work.sh /code/
+ADD comprehensive.py customrank.py customtags.py generate_matrix.py record.py wikiparser.py work.sh /code/
 
 ENTRYPOINT ["bash", "work.sh"]
