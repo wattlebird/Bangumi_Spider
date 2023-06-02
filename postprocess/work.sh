@@ -38,4 +38,4 @@ az storage blob upload -c database -f customrank.csv -n customrank_$(date +"%Y_%
 
 echo "Generating comprehensive subject archive"
 python comprehensive.py subject_archive_"$aujourdhui".jsonlines tags_"$aujourdhui".jsonlines customrank.csv
-az storage blob upload -c elastic -f subject_comprehensive.jsonlines -n subject_comprehensive_$(date +"%Y_%m_%d").csv --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
+az storage blob upload -c elastic -f subject_comprehensive_"$aujourdhui".jsonlines --account-key $AZURE_STORAGE_IKELY_KEY --account-name $AZURE_STORAGE_IKELY_ACCOUNT
