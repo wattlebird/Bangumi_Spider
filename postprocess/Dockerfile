@@ -5,7 +5,7 @@ RUN apt-get update \
     && apt-get install -y wget curl gawk jq build-essential unzip
 
 RUN conda install -y numpy scipy pandas pyarrow \
-    && pip install rankit opencc-python-reimplemented dateparser
+    && pip install rankit opencc-python-reimplemented dateparser azure-storage-blob
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 

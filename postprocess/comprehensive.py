@@ -3,6 +3,8 @@ import json
 import pandas as pd
 from datetime import date
 import argparse
+from azure.storage.blob import BlobServiceClient
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('subjectentityfile', type=str)
