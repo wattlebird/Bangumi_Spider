@@ -100,6 +100,10 @@ def normalize_infobox(rec):
 def main(subjectentityfile, tagsfile, rankingfile):
     print("Function comprehensive.py")
     today = date.today()
+    azure_blob_key = os.getenv("AZURE_STORAGE_IKELY_KEY")
+    azure_blob_account = os.getenv("AZURE_STORAGE_IKELY_ACCOUNT")
+    blobServiceClient = BlobServiceClient(account_url=f"https://{azure_blob_account}.blob.core.windows.net/", credential=azure_blob_key)
+
     subject_entity = pd.read_json(subjectentityfile, lines=True)
     tags = pd.read_json(tagsfile, lines=True)
     ranking = pd.read_csv(rankingfile)
@@ -110,7 +114,35 @@ def main(subjectentityfile, tagsfile, rankingfile):
     subject_comprehensive['alias'] = subject_comprehensive['infobox'].apply(extract_alias)
     subject_comprehensive['platform'] = subject_comprehensive['infobox'].apply(extract_platform)
     subject_comprehensive['infobox'] = subject_comprehensive['infobox'].apply(normalize_infobox)
-    subject_comprehensive.to_json(f"subject_comprehensive_{today.strftime('%Y_%m_%d')}.jsonlines", orient='records', force_ascii=False, lines=True)
+
+    step = 1000
+    for i, b in enumerate(range(0, subject_comprehensive.shape[0], 1000)):
+        e = min(b+1000, subject_comprehensive.shape[0])
+        piece = subject_comprehensive.iloc[b:e]
+        filename = f"subject_comprehensive_{today.strftime('%Y_%m_%d')}.{i:04d}.jsonlines"
+        piece.to_json("./tmp.jsonlines", orient='records', force_ascii=False, lines=True)
+        blobClient = blobServiceClient.get_blob_client(container="elastic", blob=filename)
+        with open("./tmp.jsonlines", "rb") as data:
+            print(f"Uploading file {filename}")
+            blobClient.upload_blob(data)
+    
+    dbContainer = blobServiceClient.get_container_client("database")
+    subjectList = list(dbContainer.list_blobs(name_starts_with="subject_archive"))
+    subjectList.sort(key=lambda x: x.last_modified, reverse=True)
+    prev = dbContainer.get_blob_client(subjectList[1])
+    with open(file=subjectList[1].name, mode="wb") as sample_blob:
+        print(f"Downloading file {subjectList[1].name}")
+        download_stream = prev.download_blob()
+        sample_blob.write(download_stream.readall())
+    prev_subject = pd.read_json(subjectList[1].name, lines=True)
+    to_be_del = set(prev_subject['id']) - set(subject_comprehensive['id'])
+    pd.DataFrame({
+        "id": list(to_be_del)
+    }).to_json(f"subject_del_{today.strftime('%Y_%m_%d')}.jsonlines", orient='records', force_ascii=False, lines=True)
+    blobClient = blobServiceClient.get_blob_client(container="elastic", blob=f"subject_del_{today.strftime('%Y_%m_%d')}.jsonlines")
+    with open(f"subject_del_{today.strftime('%Y_%m_%d')}.jsonlines", "rb") as data:
+        print(f"Uploading file subject_del_{today.strftime('%Y_%m_%d')}.jsonlines")
+        blobClient.upload_blob(data)
 
 if __name__=="__main__":
     args = parser.parse_args()
