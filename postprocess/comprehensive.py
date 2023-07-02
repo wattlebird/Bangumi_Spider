@@ -136,6 +136,7 @@ def main(subjectentityfile, tagsfile, rankingfile):
         sample_blob.write(download_stream.readall())
     prev_subject = pd.read_json(subjectList[1].name, lines=True)
     to_be_del = set(prev_subject['id']) - set(subject_comprehensive['id'])
+    print(f"{len(to_be_del)} items to be removed from current db")
     pd.DataFrame({
         "id": list(to_be_del)
     }).to_json(f"subject_del_{today.strftime('%Y_%m_%d')}.jsonlines", orient='records', force_ascii=False, lines=True)

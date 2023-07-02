@@ -38,3 +38,6 @@ az storage blob upload -c database -f customrank.csv -n customrank_$(date +"%Y_%
 
 echo "Generating comprehensive subject archive"
 python comprehensive.py subject_archive_"$aujourdhui".jsonlines tags_"$aujourdhui".jsonlines customrank.csv
+
+echo "Generating splitted collections file"
+python split_collections.py $recordfile
