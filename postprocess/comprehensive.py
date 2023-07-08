@@ -1,17 +1,18 @@
 from dateparser.date import DateDataParser
 import json
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 import argparse
 from azure.storage.blob import BlobServiceClient
 import os
+import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument('subjectentityfile', type=str)
 parser.add_argument('tagsfile', type=str)
 parser.add_argument('rankingfile', type=str)
 
-ddp = DateDataParser(settings={'PREFER_DAY_OF_MONTH': 'last', 'REQUIRE_PARTS': ['month', 'year'], 'DEFAULT_LANGUAGES': ["en"]}, languages=['en', 'zh'])
+ddp = DateDataParser(settings={'PREFER_DAY_OF_MONTH': 'last', 'REQUIRE_PARTS': ['year'], 'DEFAULT_LANGUAGES': ["en"]}, languages=['en', 'zh'])
 properties_rev = {
     "中文名": "name_cn",
     "集数": "num_episodes",
@@ -90,12 +91,32 @@ def normalize_infobox(rec):
         if item['key'] in properties_rev and type(item['value']) != list and item['value']:
             k = properties_rev[item['key']]
             if k.startswith("date_"):
-                v = ddp.get_date_data(item['value'])
-                if v.date_obj != None:
-                    rtn[properties_rev[item['key']]] = v.date_obj.strftime("%Y-%m-%d")
+                date = dateparser_hotfix(item['value'].strip())
+                if date != None:
+                    rtn[properties_rev[item['key']]] = date.strftime("%Y-%m-%d")
+                else:
+                    v = ddp.get_date_data(item['value'])
+                    if v.date_obj != None:
+                        rtn[properties_rev[item['key']]] = v.date_obj.strftime("%Y-%m-%d")
             else:
                 rtn[properties_rev[item['key']]] = item['value']
     return rtn
+
+def dateparser_hotfix(s):
+    # Extract the number from the regex pattern
+    match = re.match(r'^(\d+)年$', s)
+    if match:
+        year = int(match.group(1))
+        
+        # Get the current date
+        current_date = datetime.now().date()
+        
+        # Create a new date object with the extracted year
+        converted_date = current_date.replace(year=year)
+        
+        return converted_date
+    
+    return None
 
 def main(subjectentityfile, tagsfile, rankingfile):
     print("Function comprehensive.py")

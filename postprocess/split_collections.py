@@ -25,10 +25,10 @@ def main(recordfile):
             id = f"{rec['subject_id']}_{rec['user_order']}"
             cur_ids.add(id)
             lines.append(line)
-            if count % 10000 == 0:
+            if (count+1) % 10000 == 0:
                 with open("./tmp.jsonlines", "w") as fw:
                     fw.writelines(lines)
-                filename = f"collections_{today.strftime('%Y_%m_%d')}.{count//10000:05d}.jsonlines"
+                filename = f"collections_update_{today.strftime('%Y_%m_%d')}.{count//10000:05d}.jsonlines"
                 blobClient = blobServiceClient.get_blob_client(container="elastic", blob=filename)
                 with open("./tmp.jsonlines", "rb") as data:
                     print(f"Uploading file {filename}")
@@ -37,7 +37,7 @@ def main(recordfile):
         if len(lines) != 0:
             with open("./tmp.jsonlines", "w") as fw:
                 fw.writelines(lines)
-                filename = f"collections_{today.strftime('%Y_%m_%d')}.{count//10000:05d}.jsonlines"
+                filename = f"collections_update_{today.strftime('%Y_%m_%d')}.{count//10000:05d}.jsonlines"
                 blobClient = blobServiceClient.get_blob_client(container="elastic", blob=filename)
                 with open("./tmp.jsonlines", "rb") as data:
                     print(f"Uploading file {filename}")
