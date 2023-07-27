@@ -102,6 +102,19 @@ def normalize_infobox(rec):
                 rtn[properties_rev[item['key']]] = item['value']
     return rtn
 
+def extract_suggest(rec):
+    suggest = [{'input': rec['name'], 'weight': max(1, rec['fav_count'])}]
+    if rec.name_cn:
+        suggest.append({'input': rec['name_cn'], 'weight': max(1, rec['fav_count'])})
+    if type(rec.alias) == list:
+        for alias in rec.alias:
+            suggest.append({'input': alias, 'weight': max(1, rec['fav_count'] // 2)})
+    if type(rec.tags) == list:
+        for tag in rec.tags:
+            if tag['tag_cnt'] > 1:
+                suggest.append({'input': tag['tags'], 'weight': tag['tag_cnt']})
+    return suggest
+
 def dateparser_hotfix(s):
     # Extract the number from the regex pattern
     match = re.match(r'^(\d+)年$', s)
@@ -135,6 +148,7 @@ def main(subjectentityfile, tagsfile, rankingfile):
     subject_comprehensive['alias'] = subject_comprehensive['infobox'].apply(extract_alias)
     subject_comprehensive['platform'] = subject_comprehensive['infobox'].apply(extract_platform)
     subject_comprehensive['infobox'] = subject_comprehensive['infobox'].apply(normalize_infobox)
+    subject_comprehensive['suggest'] = subject_comprehensive.apply(extract_suggest, axis=1)
 
     step = 1000
     for i, b in enumerate(range(0, subject_comprehensive.shape[0], 1000)):
